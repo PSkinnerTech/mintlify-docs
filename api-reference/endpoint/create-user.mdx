@@ -1,0 +1,146 @@
+---
+title: "Create a user"
+api: "POST /api/users"
+description: "Create a new user"
+---
+
+## Description
+
+Creates a new user in the system. This endpoint is typically used by administrators to add new users or during automated user provisioning processes.
+
+## Request Body
+
+<ParamField body="id" type="string">
+  Optional UUID for the user (if not provided, will be auto-generated)
+</ParamField>
+
+<ParamField body="email" type="string" required>
+  User's email address (must be valid email format)
+</ParamField>
+
+<ParamField body="name" type="string" required>
+  User's full name (minimum 1 character, maximum 255 characters)
+</ParamField>
+
+<ParamField body="cognitoId" type="string" required>
+  AWS Cognito identifier (minimum 1 character, maximum 255 characters)
+</ParamField>
+
+<ParamField body="role" type="string">
+  User role: `user`, `student`, `teacher`, `admin`, or `superadmin` (defaults to `user`)
+</ParamField>
+
+<ParamField body="onerosterId" type="string | null">
+  OneRoster identifier if applicable (maximum 255 characters)
+</ParamField>
+
+<ParamField body="primaryOrgId" type="string | null">
+  Primary organization identifier (maximum 255 characters)
+</ParamField>
+
+<ParamField body="isActive" type="boolean">
+  Whether the user account should be active (defaults to `true`)
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "jane.smith@example.com",
+      "name": "Jane Smith",
+      "cognitoId": "us-east-1:12345678-1234-1234-1234-123456789012",
+      "role": "teacher",
+      "onerosterId": null,
+      "primaryOrgId": "org-123",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 400 Bad Request
+{
+  "success": false,
+  "error": {
+    "message": "Invalid email format or missing required fields"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "error": {
+    "message": "Authentication required"
+  }
+}
+```
+
+</ResponseExample>
+
+## User Roles
+
+<ParamField name="user" type="string">
+  Default role with basic access permissions
+</ParamField>
+
+<ParamField name="student" type="string">
+  Student role with learning-focused permissions
+</ParamField>
+
+<ParamField name="teacher" type="string">
+  Educator role with classroom management permissions
+</ParamField>
+
+<ParamField name="admin" type="string">
+  Administrator role with elevated system permissions
+</ParamField>
+
+<ParamField name="superadmin" type="string">
+  Highest privilege role with full system access
+</ParamField>
+
+## Use Cases
+
+- **User Onboarding**: Create accounts for new users during registration
+- **Bulk Import**: Mass creation of users from external systems
+- **Administrative Management**: Admins creating accounts for other users
+- **Integration**: Automated user creation from external identity providers
+
+## Access Control
+
+- **Authentication Required**: Must have valid JWT token
+- **Role Permissions**: Typically restricted to admin and superadmin roles
+- **Organization Scope**: May be limited to creating users within the same organization
+
+## Validation Rules
+
+- **Email**: Must be unique across the system and valid email format
+- **Cognito ID**: Must be unique and properly formatted Cognito identifier
+- **Name**: Cannot be empty and must be reasonable length
+- **Role**: Must be one of the predefined role values
+
+## Related Endpoints
+
+- [List users](/api-reference/endpoint/list-users)
+- [Get a user](/api-reference/endpoint/get-user)
+- [Update a user](/api-reference/endpoint/update-user)
+- [Delete a user](/api-reference/endpoint/delete-user)

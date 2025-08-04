@@ -1027,6 +1027,212 @@
         }
       }
     },
+    "/api/badges/v3/profiles": {
+      "get": {
+        "summary": "List badge issuer profiles",
+        "description": "Retrieve a paginated list of all active badge issuer profiles",
+        "tags": ["Open Badges v3.0 - Profiles"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of badge issuer profiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadgeProfileListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a badge issuer profile",
+        "description": "Create a new badge issuer profile with optional cryptographic key generation",
+        "tags": ["Open Badges v3.0 - Profiles"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBadgeProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Badge issuer profile created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadgeProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          }
+        }
+      }
+    },
+    "/api/badges/v3/profiles/{id}": {
+      "get": {
+        "summary": "Get a badge issuer profile",
+        "description": "Retrieve a specific badge issuer profile by its IRI",
+        "tags": ["Open Badges v3.0 - Profiles"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Badge issuer profile IRI",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Badge issuer profile details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadgeProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a badge issuer profile",
+        "description": "Update an existing badge issuer profile (requires ownership)",
+        "tags": ["Open Badges v3.0 - Profiles"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Badge issuer profile IRI",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBadgeProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Badge issuer profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadgeProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a badge issuer profile",
+        "description": "Soft delete a badge issuer profile (requires ownership)",
+        "tags": ["Open Badges v3.0 - Profiles"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Badge issuer profile IRI",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Badge issuer profile deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health check",
@@ -1475,6 +1681,285 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/AuditLog"
+                    }
+                  },
+                  "pagination": {
+                    "$ref": "#/components/schemas/PaginationInfo"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "BadgeProfile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uri",
+            "description": "Unique IRI for the badge issuer profile"
+          },
+          "type": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Type of the profile, typically includes 'Profile'"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name of the badge issuer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Official website URL of the badge issuer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email for the badge issuer"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "description": "Image representing the badge issuer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the badge issuer"
+          },
+          "publicKey": {
+            "type": "object",
+            "description": "Cryptographic key for badge verification",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uri"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["CryptographicKey"]
+              },
+              "owner": {
+                "type": "string",
+                "format": "uri"
+              },
+              "publicKeyPem": {
+                "type": "string"
+              }
+            }
+          },
+          "address": {
+            "type": "object",
+            "description": "Physical address of the badge issuer",
+            "properties": {
+              "streetAddress": {
+                "type": "string"
+              },
+              "addressLocality": {
+                "type": "string"
+              },
+              "addressRegion": {
+                "type": "string"
+              },
+              "postalCode": {
+                "type": "string"
+              },
+              "addressCountry": {
+                "type": "string"
+              }
+            }
+          },
+          "telephone": {
+            "type": "string",
+            "description": "Contact telephone number"
+          },
+          "verification": {
+            "type": "object",
+            "description": "Verification method for badges issued by this profile",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["HostedBadge", "SignedBadge"]
+              },
+              "startsWith": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Profile creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Profile last update timestamp"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the profile is currently active"
+          }
+        },
+        "required": ["id", "type", "name"]
+      },
+      "CreateBadgeProfileRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name of the badge issuer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Official website URL of the badge issuer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email for the badge issuer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the badge issuer"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "description": "Image representing the badge issuer"
+          },
+          "generateKeys": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to generate cryptographic keys for badge signing"
+          },
+          "address": {
+            "type": "object",
+            "description": "Physical address of the badge issuer",
+            "properties": {
+              "streetAddress": {
+                "type": "string"
+              },
+              "addressLocality": {
+                "type": "string"
+              },
+              "addressRegion": {
+                "type": "string"
+              },
+              "postalCode": {
+                "type": "string"
+              },
+              "addressCountry": {
+                "type": "string"
+              }
+            }
+          },
+          "telephone": {
+            "type": "string",
+            "description": "Contact telephone number"
+          }
+        },
+        "required": ["name"]
+      },
+      "UpdateBadgeProfileRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name of the badge issuer"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Official website URL of the badge issuer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email for the badge issuer"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the badge issuer"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "description": "Image representing the badge issuer"
+          },
+          "address": {
+            "type": "object",
+            "description": "Physical address of the badge issuer",
+            "properties": {
+              "streetAddress": {
+                "type": "string"
+              },
+              "addressLocality": {
+                "type": "string"
+              },
+              "addressRegion": {
+                "type": "string"
+              },
+              "postalCode": {
+                "type": "string"
+              },
+              "addressCountry": {
+                "type": "string"
+              }
+            }
+          },
+          "telephone": {
+            "type": "string",
+            "description": "Contact telephone number"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the profile is currently active"
+          }
+        }
+      },
+      "BadgeProfileResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "profile": {
+                    "$ref": "#/components/schemas/BadgeProfile"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "BadgeProfileListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "profiles": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/BadgeProfile"
                     }
                   },
                   "pagination": {
@@ -2223,6 +2708,10 @@
     {
       "name": "Audit",
       "description": "Audit logging and compliance tracking"
+    },
+    {
+      "name": "Open Badges v3.0 - Profiles",
+      "description": "Badge issuer profile management for Open Badges v3.0 standard"
     },
     {
       "name": "Authentication",

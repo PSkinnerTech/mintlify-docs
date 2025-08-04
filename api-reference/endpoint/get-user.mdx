@@ -1,0 +1,152 @@
+---
+title: "Get a user"
+api: "GET /api/users/{id}"
+description: "Get a user by ID. Users can only access their own data unless they are admin/superadmin."
+---
+
+## Description
+
+Retrieves detailed information about a specific user by their ID. Access is controlled based on user role - regular users can only access their own information, while administrators can access any user's information.
+
+## Path Parameters
+
+<ParamField path="id" type="string" required>
+  User ID (UUID format)
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "john.doe@example.com",
+      "name": "John Doe",
+      "cognitoId": "us-east-1:12345678-1234-1234-1234-123456789012",
+      "role": "teacher",
+      "onerosterId": "roster-12345",
+      "primaryOrgId": "org-123",
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-20T16:45:00Z"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "error": {
+    "message": "Authentication required"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 403 Forbidden
+{
+  "success": false,
+  "error": {
+    "message": "Insufficient permissions to access this user"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 404 Not Found
+{
+  "success": false,
+  "error": {
+    "message": "User not found"
+  }
+}
+```
+
+</ResponseExample>
+
+## User Fields
+
+<ParamField name="id" type="string">
+  Unique user identifier (UUID format)
+</ParamField>
+
+<ParamField name="email" type="string">
+  User's email address
+</ParamField>
+
+<ParamField name="name" type="string">
+  User's full name
+</ParamField>
+
+<ParamField name="cognitoId" type="string">
+  AWS Cognito identifier for authentication
+</ParamField>
+
+<ParamField name="role" type="string">
+  User role: `user`, `student`, `teacher`, `admin`, or `superadmin`
+</ParamField>
+
+<ParamField name="onerosterId" type="string | null">
+  OneRoster identifier if the user is associated with OneRoster system
+</ParamField>
+
+<ParamField name="primaryOrgId" type="string | null">
+  Primary organization identifier the user belongs to
+</ParamField>
+
+<ParamField name="isActive" type="boolean">
+  Whether the user account is currently active
+</ParamField>
+
+<ParamField name="createdAt" type="string">
+  ISO 8601 timestamp when the user was created
+</ParamField>
+
+<ParamField name="updatedAt" type="string">
+  ISO 8601 timestamp when the user was last updated
+</ParamField>
+
+## Access Control
+
+- **Self-Access**: Users can always access their own profile information
+- **Admin Access**: Administrators (`admin`, `superadmin`) can access any user
+- **Organization Scope**: May be limited to users within the same organization
+- **Role Restrictions**: Some fields may be filtered based on the requesting user's role
+
+## Use Cases
+
+- **Profile Display**: Show user profile information in applications
+- **User Management**: Administrative interfaces for viewing user details
+- **Identity Verification**: Confirm user identity and attributes
+- **Integration**: Retrieve user data for external system integration
+
+## Security Considerations
+
+- **Privacy Protection**: Non-admin users cannot access other users' information
+- **Data Minimization**: Only necessary information is returned based on access level
+- **Audit Trail**: Access to user information may be logged for security purposes
+
+## Related Endpoints
+
+- [List users](/api-reference/endpoint/list-users)
+- [Create a user](/api-reference/endpoint/create-user)
+- [Update a user](/api-reference/endpoint/update-user)
+- [Delete a user](/api-reference/endpoint/delete-user)
+- [Get current user](/api-reference/endpoint/get-current-user)

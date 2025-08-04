@@ -1,0 +1,97 @@
+---
+title: "Register SSO session"
+api: "POST /api/auth/sessions/register"
+description: "Register a new SSO session after successful login"
+---
+
+## Description
+
+Registers a new SSO (Single Sign-On) session after successful authentication. This enables seamless authentication across multiple domains and applications within the TimeBack ecosystem.
+
+## Request Body
+
+<ParamField body="fingerprint" type="string" required>
+  Device fingerprint for session identification (minimum 1 character)
+</ParamField>
+
+<ParamField body="domain" type="string" required>
+  Domain URL requesting the session registration (must be valid URI format)
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "Session registered successfully": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "domains": [
+        "https://app.timeback.com"
+      ],
+      "createdAt": "2024-01-15T10:30:00Z",
+      "lastActiveAt": "2024-01-15T10:30:00Z",
+      "expiresAt": "2024-01-22T10:30:00Z"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 400 Bad Request
+{
+  "success": false,
+  "error": {
+    "message": "Invalid fingerprint or domain format"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "error": {
+    "message": "Authentication required"
+  }
+}
+```
+
+</ResponseExample>
+
+## Device Fingerprinting
+
+The `fingerprint` parameter should be a unique identifier for the user's device/browser combination. Common approaches include:
+
+- Browser fingerprinting based on user agent, screen resolution, timezone
+- Canvas fingerprinting for unique device identification
+- Hardware-based identifiers where available
+
+## Use Cases
+
+- **Cross-Domain SSO**: Enable seamless login across multiple applications
+- **Session Management**: Track user sessions across different domains
+- **Security**: Associate sessions with specific devices for enhanced security
+- **User Experience**: Reduce authentication friction in multi-app environments
+
+## Access Control
+
+- **Authentication Required**: Must have valid JWT token
+- **Rate Limiting**: May be subject to rate limiting to prevent abuse
+- **Domain Validation**: Domains may need to be pre-approved
+
+## Related Endpoints
+
+- [Check SSO session](/api-reference/endpoint/check-sso-session)
+- [List active SSO sessions](/api-reference/endpoint/list-sso-sessions)
+- [Revoke all SSO sessions](/api-reference/endpoint/revoke-sso-sessions)

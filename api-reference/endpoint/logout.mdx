@@ -1,0 +1,58 @@
+---
+title: "Logout and clear authentication"
+api: "POST /api/auth/logout"
+description: "Clear authentication cookies and optionally revoke all SSO sessions"
+---
+
+## Description
+
+Logs out the current user by clearing authentication cookies and optionally revoking all SSO sessions across devices. This endpoint ensures secure session termination.
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "message": "Successfully logged out"
+  }
+}
+```
+
+</ResponseExample>
+
+## Behavior
+
+- **Cookie Clearing**: Removes authentication cookies from the browser
+- **Session Termination**: Invalidates the current user session
+- **SSO Impact**: May revoke SSO sessions across other applications
+- **Token Invalidation**: Existing JWT tokens become invalid
+
+## Use Cases
+
+- **User Logout**: Secure logout from web applications
+- **Session Management**: Clean session termination
+- **Security**: Ensure complete logout across SSO domains
+
+## Security Features
+
+- **Complete Logout**: Ensures all authentication traces are removed
+- **Cross-Domain**: Handles SSO session cleanup across multiple domains
+- **Token Revocation**: Prevents reuse of existing authentication tokens
+
+## Client-Side Actions
+
+After successful logout, client applications should:
+
+1. Clear stored JWT tokens
+2. Remove user session data
+3. Redirect to login page
+4. Clear any cached user information
+
+## Related Endpoints
+
+- [Login with email and password](/api-reference/endpoint/login)
+- [Get current user](/api-reference/endpoint/get-current-user)
+- [List active SSO sessions](/api-reference/endpoint/list-sso-sessions)

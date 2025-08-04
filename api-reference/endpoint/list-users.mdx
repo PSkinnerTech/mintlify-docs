@@ -1,0 +1,124 @@
+---
+title: "List users"
+api: "GET /api/users"
+description: "Get a list of users. Regular users only see themselves, admins see all users."
+---
+
+## Description
+
+Returns a paginated list of users. Access is controlled based on user role - regular users can only see their own information, while admins and superadmins can see all users in the system.
+
+## Query Parameters
+
+<ParamField query="page" type="number" required default="1">
+  Page number for pagination (minimum: 1)
+</ParamField>
+
+<ParamField query="pageSize" type="number" required default="20">
+  Number of users per page (minimum: 1, maximum: 100)
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "email": "john.doe@example.com",
+        "name": "John Doe",
+        "cognitoId": "us-east-1:12345678-1234-1234-1234-123456789012",
+        "role": "user",
+        "onerosterId": null,
+        "primaryOrgId": "org-123",
+        "isActive": true,
+        "createdAt": "2024-01-15T10:30:00Z",
+        "updatedAt": "2024-01-15T14:22:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 156,
+      "page": 1,
+      "pageSize": 20,
+      "totalPages": 8
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## User Fields
+
+<ParamField name="id" type="string">
+  Unique user identifier (UUID format)
+</ParamField>
+
+<ParamField name="email" type="string">
+  User's email address (maximum 255 characters)
+</ParamField>
+
+<ParamField name="name" type="string">
+  User's full name (maximum 255 characters)
+</ParamField>
+
+<ParamField name="cognitoId" type="string">
+  AWS Cognito identifier (maximum 255 characters)
+</ParamField>
+
+<ParamField name="role" type="string">
+  User role: `user`, `student`, `teacher`, `admin`, or `superadmin`
+</ParamField>
+
+<ParamField name="onerosterId" type="string | null">
+  OneRoster identifier if associated (maximum 255 characters)
+</ParamField>
+
+<ParamField name="primaryOrgId" type="string | null">
+  Primary organization identifier (maximum 255 characters)
+</ParamField>
+
+<ParamField name="isActive" type="boolean">
+  Whether the user account is currently active
+</ParamField>
+
+<ParamField name="createdAt" type="string">
+  ISO 8601 timestamp when the user was created
+</ParamField>
+
+<ParamField name="updatedAt" type="string">
+  ISO 8601 timestamp when the user was last updated
+</ParamField>
+
+## Access Control
+
+- **Regular Users (`user`, `student`, `teacher`)**: Can only see their own user record
+- **Administrators (`admin`, `superadmin`)**: Can see all users in the system
+- **Organization Scope**: May be limited to users within the same organization
+
+## Use Cases
+
+- **User Management**: Admin interfaces for managing system users
+- **Directory Listing**: Display user directories for administrators
+- **Profile Management**: Users viewing their own profile information
+- **Organization Management**: Managing users within specific organizations
+
+## Pagination
+
+The response includes pagination metadata to help with large user lists:
+
+- `total`: Total number of users
+- `page`: Current page number
+- `pageSize`: Number of items per page
+- `totalPages`: Total number of pages available
+
+## Related Endpoints
+
+- [Create a user](/api-reference/endpoint/create-user)
+- [Get a user](/api-reference/endpoint/get-user)
+- [Update a user](/api-reference/endpoint/update-user)
+- [Delete a user](/api-reference/endpoint/delete-user)

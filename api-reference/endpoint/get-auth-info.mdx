@@ -1,0 +1,49 @@
+---
+title: "Get authentication info"
+api: "GET /api/auth/info"
+description: "Get information about authentication configuration and instructions"
+---
+
+## Description
+
+Returns authentication configuration details including AWS Cognito settings and setup instructions. This endpoint is publicly accessible and doesn't require authentication.
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "message": "Authentication information",
+    "instructions": {
+      "setup": "Configure AWS Cognito with the provided settings",
+      "login": "Use email and password to authenticate"
+    },
+    "cognito": {
+      "userPoolId": "us-east-1_xxxxxxxxx",
+      "clientId": "xxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "region": "us-east-1"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Use Cases
+
+- **Initial Setup**: Get Cognito configuration for client applications
+- **Integration**: Understand authentication requirements and setup
+- **Troubleshooting**: Verify authentication service configuration
+
+## Access Control
+
+- **Public endpoint**: No authentication required
+- Available to all clients and developers
+
+## Related Endpoints
+
+- [Login with email and password](/api-reference/endpoint/login)
+- [Get current user](/api-reference/endpoint/get-current-user)

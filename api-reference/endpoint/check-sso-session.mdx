@@ -1,0 +1,116 @@
+---
+title: "Check SSO session"
+api: "POST /api/auth/sessions/check"
+description: "Check if a valid SSO session exists for the device fingerprint"
+---
+
+## Description
+
+Verifies if a valid SSO session exists for a specific device fingerprint and domain combination. Returns authentication status and user information if a valid session is found.
+
+## Request Body
+
+<ParamField body="fingerprint" type="string" required>
+  Device fingerprint to check for existing session (minimum 1 character)
+</ParamField>
+
+<ParamField body="domain" type="string" required>
+  Domain URL requesting the session check (must be valid URI format)
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "Valid session found": {
+      "authenticated": true,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "user": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "email": "user@example.com",
+        "name": "John Doe",
+        "role": "user"
+      },
+      "session": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "domains": [
+          "https://app.timeback.com",
+          "https://dashboard.alpha.school"
+        ],
+        "createdAt": "2024-01-15T10:30:00Z",
+        "lastActiveAt": "2024-01-15T14:22:00Z",
+        "expiresAt": "2024-01-22T10:30:00Z"
+      }
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 400 Bad Request
+{
+  "success": false,
+  "error": {
+    "message": "Invalid fingerprint or domain format"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 404 Not Found
+{
+  "success": false,
+  "error": {
+    "message": "No valid session found"
+  }
+}
+```
+
+</ResponseExample>
+
+## Response Fields
+
+<ParamField name="authenticated" type="boolean">
+  Whether a valid session exists for the fingerprint/domain combination
+</ParamField>
+
+<ParamField name="token" type="string">
+  JWT access token for API authentication (if session is valid)
+</ParamField>
+
+<ParamField name="user" type="object">
+  User information associated with the session
+</ParamField>
+
+<ParamField name="session" type="object">
+  Detailed session information including domains and timestamps
+</ParamField>
+
+## Use Cases
+
+- **Silent Authentication**: Check for existing sessions to avoid re-login
+- **Cross-Domain Login**: Authenticate users across different applications
+- **Session Validation**: Verify session status before allowing access
+- **User Experience**: Provide seamless authentication across domains
+
+## Security Note
+
+This endpoint does not require authentication, making it suitable for checking session status before login. However, it requires both fingerprint and domain to prevent unauthorized session checking.
+
+## Related Endpoints
+
+- [Register SSO session](/api-reference/endpoint/register-sso-session)
+- [List active SSO sessions](/api-reference/endpoint/list-sso-sessions)
+- [Revoke all SSO sessions](/api-reference/endpoint/revoke-sso-sessions)

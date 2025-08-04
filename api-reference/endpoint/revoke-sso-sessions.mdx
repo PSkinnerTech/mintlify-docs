@@ -1,0 +1,79 @@
+---
+title: "Revoke all SSO sessions"
+api: "DELETE /api/auth/sessions/revoke"
+description: "Revoke all SSO sessions for the current user (logout everywhere)"
+---
+
+## Description
+
+Revokes all active SSO sessions for the current user across all domains and devices. This is equivalent to "logout everywhere" functionality, providing a secure way to terminate all active sessions.
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "Sessions revoked": {
+      "message": "All SSO sessions have been successfully revoked"
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "error": {
+    "message": "Authentication required"
+  }
+}
+```
+
+</ResponseExample>
+
+## Behavior
+
+When this endpoint is called:
+
+1. **All Sessions Terminated**: Every active SSO session for the user is invalidated
+2. **Cross-Domain Effect**: Sessions are revoked across all domains in the SSO network
+3. **Immediate Effect**: Changes take effect immediately across all applications
+4. **Token Invalidation**: All associated JWT tokens become invalid
+5. **Re-authentication Required**: User must log in again on all applications
+
+## Use Cases
+
+- **Security Incident**: Quickly secure account after suspected compromise
+- **Device Loss**: Revoke sessions when a device is lost or stolen
+- **Logout Everywhere**: Provide users with complete session control
+- **Account Cleanup**: Clear all sessions when changing passwords or security settings
+- **Administrative Action**: Force re-authentication for security purposes
+
+## Security Considerations
+
+- **Irreversible Action**: Once revoked, all sessions must be re-established
+- **User Impact**: User will be logged out of all applications immediately
+- **No Selective Revocation**: This endpoint revokes ALL sessions, not individual ones
+
+## Best Practices
+
+- **User Warning**: Inform users about the impact before calling this endpoint
+- **Confirmation**: Consider requiring additional confirmation for this action
+- **Logging**: Log session revocation events for security auditing
+- **User Notification**: Consider notifying users via email about session revocation
+
+## Related Endpoints
+
+- [List active SSO sessions](/api-reference/endpoint/list-sso-sessions)
+- [Register SSO session](/api-reference/endpoint/register-sso-session)
+- [Check SSO session](/api-reference/endpoint/check-sso-session)
+- [Logout and clear authentication](/api-reference/endpoint/logout)

@@ -1,0 +1,79 @@
+---
+title: "List active SSO sessions"
+api: "GET /api/auth/sessions"
+description: "Get all active SSO sessions for the current user"
+---
+
+## Description
+
+Returns a list of all active SSO (Single Sign-On) sessions for the authenticated user. This includes sessions across different domains and devices with detailed session information.
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "Active sessions retrieved": {
+      "sessions": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "domains": [
+            "https://app.timeback.com",
+            "https://dashboard.alpha.school"
+          ],
+          "createdAt": "2024-01-15T10:30:00Z",
+          "lastActiveAt": "2024-01-15T14:22:00Z",
+          "expiresAt": "2024-01-22T10:30:00Z"
+        }
+      ]
+    }
+  }
+}
+```
+
+</ResponseExample>
+
+## Session Fields
+
+<ParamField name="id" type="string">
+  Unique session identifier (UUID format)
+</ParamField>
+
+<ParamField name="domains" type="array">
+  List of domains where this session is active
+</ParamField>
+
+<ParamField name="createdAt" type="string">
+  ISO 8601 timestamp when the session was created
+</ParamField>
+
+<ParamField name="lastActiveAt" type="string">
+  ISO 8601 timestamp of the last session activity
+</ParamField>
+
+<ParamField name="expiresAt" type="string">
+  ISO 8601 timestamp when the session will expire
+</ParamField>
+
+## Use Cases
+
+- **Security Monitoring**: View all active sessions for security auditing
+- **Device Management**: See which devices/browsers have active sessions
+- **Session Control**: Identify sessions to revoke if needed
+- **Cross-Domain Tracking**: Monitor SSO usage across different applications
+
+## Access Control
+
+- **Authentication Required**: Must be logged in to view sessions
+- **User-Specific**: Users can only see their own sessions
+- **Admin Override**: Admins may have broader access (implementation dependent)
+
+## Related Endpoints
+
+- [Register SSO session](/api-reference/endpoint/register-sso-session)
+- [Check SSO session](/api-reference/endpoint/check-sso-session)
+- [Revoke all SSO sessions](/api-reference/endpoint/revoke-sso-sessions)
+- [Logout and clear authentication](/api-reference/endpoint/logout)

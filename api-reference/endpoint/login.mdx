@@ -1,0 +1,92 @@
+---
+title: "Login with email and password"
+api: "POST /api/auth/login"
+description: "Authenticate with AWS Cognito using email and password"
+---
+
+## Description
+
+Authenticates a user with AWS Cognito using email and password credentials. Returns JWT tokens for API access including access token, ID token, and refresh token.
+
+## Request Body
+
+<ParamField body="email" type="string" required>
+  User's email address (must be valid email format)
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  User's password
+</ParamField>
+
+## Response
+
+<ResponseExample>
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "idToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expiresIn": 3600,
+    "tokenType": "Bearer"
+  }
+}
+```
+
+</ResponseExample>
+
+## Error Responses
+
+<ResponseExample>
+
+```json 400 Bad Request
+{
+  "success": false,
+  "error": {
+    "message": "Invalid email or password format"
+  }
+}
+```
+
+</ResponseExample>
+
+<ResponseExample>
+
+```json 401 Unauthorized
+{
+  "success": false,
+  "error": {
+    "message": "Invalid credentials"
+  }
+}
+```
+
+</ResponseExample>
+
+## Token Usage
+
+The returned `accessToken` should be included in the `Authorization` header for subsequent API requests:
+
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+## Use Cases
+
+- **User Authentication**: Primary login method for web and mobile applications
+- **API Access**: Obtain tokens for authenticated API requests
+- **Session Management**: Establish user sessions with proper token management
+
+## Security Considerations
+
+- **HTTPS Required**: All authentication requests must use HTTPS
+- **Token Storage**: Store tokens securely on the client side
+- **Token Refresh**: Use refresh token to obtain new access tokens when expired
+
+## Related Endpoints
+
+- [Get current user](/api-reference/endpoint/get-current-user)
+- [Logout and clear authentication](/api-reference/endpoint/logout)
+- [Get authentication info](/api-reference/endpoint/get-auth-info)
