@@ -803,6 +803,230 @@
         }
       }
     },
+    "/api/api-keys": {
+      "get": {
+        "summary": "List API keys",
+        "description": "List all API keys. Admin only.",
+        "tags": ["API Keys"],
+        "responses": {
+          "200": {
+            "description": "List of API keys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create API key",
+        "description": "Create a new API key. Admin only. The plain key is returned only once.",
+        "tags": ["API Keys"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateApiKeyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
+    "/api/api-keys/{id}": {
+      "delete": {
+        "summary": "Revoke API key",
+        "description": "Revoke an API key by setting it as inactive. Admin only.",
+        "tags": ["API Keys"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "API key ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "API key revoked successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/audit": {
+      "get": {
+        "summary": "List audit logs",
+        "description": "Get audit logs with filtering options. Admin only.",
+        "tags": ["Audit"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query", 
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "description": "Filter by user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Filter by action type",
+            "schema": {
+              "type": "string",
+              "enum": ["create", "read", "update", "delete", "login", "logout", "export", "import"]
+            }
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "description": "Filter by resource type",
+            "schema": {
+              "type": "string",
+              "enum": ["user", "student", "result", "api-key", "organization", "session"]
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "description": "Filter logs from this date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "description": "Filter logs until this date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of audit logs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
+    "/api/audit/{id}": {
+      "get": {
+        "summary": "Get audit log entry",
+        "description": "Get a specific audit log entry by ID. Admin only.",
+        "tags": ["Audit"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Audit log entry ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit log entry details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health check",
@@ -1028,6 +1252,229 @@
                     "type": "array",
                     "items": {
                       "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "pagination": {
+                    "$ref": "#/components/schemas/PaginationInfo"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique API key identifier"
+          },
+          "keyPrefix": {
+            "type": "string",
+            "description": "First few characters of the API key for identification"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name for the API key"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the API key's purpose"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the API key is currently active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "API key creation timestamp"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "API key expiration timestamp (if set)"
+          },
+          "lastUsedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last time the API key was used"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "ID of the user who created this API key"
+          }
+        },
+        "required": ["id", "keyPrefix", "name", "isActive", "createdAt", "createdBy"]
+      },
+      "CreateApiKeyRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Human-readable name for the API key"
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description of the API key's purpose"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Optional expiration timestamp for the API key"
+          }
+        },
+        "required": ["name"]
+      },
+      "CreateApiKeyResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "apiKey": {
+                    "$ref": "#/components/schemas/ApiKey"
+                  },
+                  "key": {
+                    "type": "string",
+                    "description": "The full API key - only returned once upon creation"
+                  }
+                },
+                "required": ["apiKey", "key"]
+              }
+            }
+          }
+        ]
+      },
+      "ApiKeyListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "apiKeys": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ApiKey"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AuditLog": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique audit log entry identifier"
+          },
+          "userId": {
+            "type": "string",
+            "description": "ID of the user who performed the action"
+          },
+          "userEmail": {
+            "type": "string",
+            "format": "email",
+            "description": "Email of the user who performed the action"
+          },
+          "action": {
+            "type": "string",
+            "enum": ["create", "read", "update", "delete", "login", "logout", "export", "import"],
+            "description": "Type of action performed"
+          },
+          "resource": {
+            "type": "string",
+            "enum": ["user", "student", "result", "api-key", "organization", "session"],
+            "description": "Type of resource affected"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "ID of the specific resource affected"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional details about the action performed",
+            "properties": {
+              "changes": {
+                "type": "object",
+                "description": "Object showing before/after values for updates"
+              },
+              "metadata": {
+                "type": "object",
+                "description": "Additional contextual information"
+              }
+            }
+          },
+          "ipAddress": {
+            "type": "string",
+            "description": "IP address from which the action was performed"
+          },
+          "userAgent": {
+            "type": "string",
+            "description": "User agent string of the client"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the action was performed"
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "Organization context for the action"
+          }
+        },
+        "required": ["id", "userId", "userEmail", "action", "resource", "timestamp"]
+      },
+      "AuditLogResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "auditLog": {
+                    "$ref": "#/components/schemas/AuditLog"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AuditLogListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "auditLogs": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/AuditLog"
                     }
                   },
                   "pagination": {
@@ -1768,6 +2215,14 @@
     {
       "name": "User Management",
       "description": "User account and profile management"
+    },
+    {
+      "name": "API Keys",
+      "description": "API key creation and management"
+    },
+    {
+      "name": "Audit",
+      "description": "Audit logging and compliance tracking"
     },
     {
       "name": "Authentication",
