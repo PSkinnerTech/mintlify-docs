@@ -1,16 +1,8 @@
-# Mintlify Starter Kit
+# Alpha School Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Documentation for [Alpha School](https://alpha.school/) - where kids crush academics in 2 hours, build life skills through workshops, and thrive beyond the classroom.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
-
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
-
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+This documentation is built with Mintlify and covers Alpha School's innovative educational approach, programs, and resources.
 
 ## Development
 
