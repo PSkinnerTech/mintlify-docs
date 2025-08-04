@@ -1,0 +1,183 @@
+---
+title: "Get Current User"
+description: "Returns information about the currently authenticated user"
+openapi: "GET /auth/me"
+---
+
+## Overview
+
+Returns detailed information about the currently authenticated user, including their profile, role, and organization memberships. This endpoint is commonly used to verify authentication status and retrieve user context for applications.
+
+## Usage Examples
+
+### Get Current User Information
+Retrieve information about the authenticated user:
+
+```bash
+curl -X GET "https://core.timebackapi.com/auth/me" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Using API Key Authentication
+Alternative authentication method:
+
+```bash
+curl -X GET "https://core.timebackapi.com/auth/me" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+### JavaScript/TypeScript Example
+Using the TimeBack SDK:
+
+```typescript
+import { TimeBackClient } from '@timeback/sdk';
+
+const client = new TimeBackClient({
+  apiKey: 'your-jwt-token',
+  baseUrl: 'https://core.timebackapi.com'
+});
+
+const currentUser = await client.auth.me();
+console.log('Current user:', currentUser);
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "user-123",
+      "email": "teacher@school.edu",
+      "name": "Sarah Johnson",
+      "role": "admin",
+      "organizationIds": [
+        "school-123",
+        "district-456"
+      ]
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T10:30:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+## Response Fields
+
+- **id**: Unique user identifier
+- **email**: User's email address (used for authentication)
+- **name**: Full name of the user
+- **role**: User's system role determining permissions
+- **organizationIds**: Array of organization IDs the user has access to
+
+## User Roles
+
+The `role` field can have the following values:
+
+### **user** (Standard User)
+- Access to assigned classes and students
+- Can view and submit grades
+- Limited administrative functions
+
+### **admin** (Administrator)
+- Manage users within their organizations
+- Access to organizational settings
+- Advanced reporting and analytics
+- Student and class management
+
+### **superadmin** (Super Administrator)
+- System-wide access across all organizations
+- Platform configuration and management
+- User role management
+- System monitoring and maintenance
+
+## Error Responses
+
+### 401 Unauthorized - Invalid Token
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH001",
+    "message": "Invalid or missing authentication token"
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T10:30:00Z",
+    "requestId": "req_1234567890"
+  }
+}
+```
+
+### 401 Unauthorized - Expired Token
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH002",
+    "message": "Authentication token has expired"
+  }
+}
+```
+
+## Common Use Cases
+
+### Authentication Verification
+Check if the current token is valid and get user context:
+
+```javascript
+try {
+  const response = await fetch('/api/auth/me', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  
+  if (response.ok) {
+    const userData = await response.json();
+    console.log('User is authenticated:', userData.data.user);
+  } else {
+    // Redirect to login
+    window.location.href = '/login';
+  }
+} catch (error) {
+  console.error('Authentication check failed:', error);
+}
+```
+
+### Role-Based Access Control
+Determine user permissions based on role:
+
+```javascript
+const user = currentUserResponse.data.user;
+
+const canManageUsers = ['admin', 'superadmin'].includes(user.role);
+const canAccessAllOrgs = user.role === 'superadmin';
+const userOrganizations = user.organizationIds;
+
+// Show/hide UI elements based on permissions
+if (canManageUsers) {
+  showUserManagementSection();
+}
+```
+
+### Organization Context
+Filter data based on user's organization access:
+
+```javascript
+const userOrgs = currentUser.data.user.organizationIds;
+
+// Fetch students only from user's organizations
+const students = await api.get('/students', {
+  params: { organizationId: userOrgs.join(',') }
+});
+```
+
+## Security Notes
+
+- This endpoint always requires authentication
+- The response contains sensitive user information
+- Use HTTPS in production to protect user data in transit
+- Token validation occurs on every request to this endpoint
+- Consider caching user information client-side to reduce API calls

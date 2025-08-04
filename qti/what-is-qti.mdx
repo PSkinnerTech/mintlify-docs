@@ -1,0 +1,164 @@
+---
+title: "What is QTI?"
+description: "Introduction to Question & Test Interoperability (QTI), the educational assessment standard"
+---
+
+## What is QTI?
+
+**Question & Test Interoperability (QTI)** is an open standard specification developed by [1EdTech Consortium](https://www.1edtech.org/standards/qti) (formerly IMS Global Learning Consortium) that enables the exchange of assessment content and data between different educational technology systems.
+
+## Core Purpose
+
+QTI solves a fundamental problem in educational technology: **assessment vendor lock-in**. Before QTI, educational institutions were often trapped with specific assessment tools because their content couldn't be easily moved between different systems.
+
+### What QTI Provides
+
+- **Content Portability**: Move tests and questions between different authoring tools, LMS platforms, and delivery systems
+- **Presentation Consistency**: Standardized rendering of assessments across different applications
+- **Secure Exchange**: Safe transfer of assessment content while maintaining institutional ownership
+- **Accessibility Compliance**: Built-in support for Section 508 and WCAG 2.1 AA standards
+- **Results Interoperability**: Standardized reporting of assessment results and analytics
+
+## How QTI Works
+
+QTI is fundamentally an **XML-based packaging format** that describes:
+
+### Assessment Structure
+```xml
+<!-- QTI defines assessments, sections, and individual items -->
+<qti-assessment-test>
+  <qti-test-part>
+    <qti-assessment-section>
+      <qti-assessment-item-ref identifier="item1"/>
+    </qti-assessment-section>
+  </qti-test-part>
+</qti-assessment-test>
+```
+
+### Rich Interaction Types
+- Multiple choice, true/false
+- Fill-in-the-blank and essay responses
+- Drag-and-drop interactions
+- Graphical interactions (hotspot, drawing)
+- Mathematical expressions
+- Custom portable interactions
+
+### Advanced Assessment Features
+- **Response Processing**: Complex scoring logic and algorithms
+- **Adaptive Testing**: Questions that change based on previous responses
+- **Item Templating**: Dynamic question generation with variables
+- **Feedback Systems**: Immediate, contextual feedback to learners
+- **Accessibility Features**: Screen reader support, alternative formats
+
+## QTI Versions
+
+### QTI 3.0 (Current)
+- **Released**: May 2022
+- **Key Features**: 
+  - Web-friendly markup with standard HTML5 components
+  - Enhanced Computer Adaptive Testing (CAT) support
+  - Improved Portable Custom Interactions (PCIs)
+  - Better accessibility and Personal Needs & Preferences (PNP)
+  - Unified specification combining QTI 2.x and APIP
+
+### QTI 2.2
+- **Released**: September 2015
+- **Features**: HTML5 support, enhanced metadata, usage data reporting
+- **Status**: Widely adopted, still in use
+
+### Earlier Versions
+- **QTI 2.1** (2012): Added test-level features, response processing
+- **QTI 2.0** (2005): Major rewrite with new interaction model
+- **QTI 1.2** (2002): Original specification
+
+## QTI vs. Simple HTML Forms
+
+QTI is **much richer** than basic HTML forms because it includes:
+
+| Feature | HTML Forms | QTI |
+|---------|------------|-----|
+| **Context/Metadata** | None | Rich metadata, learning objectives |
+| **Response Details** | Basic validation | Complex response processing |
+| **Scoring Logic** | Manual | Automated with sophisticated algorithms |
+| **Usage Analytics** | None | Item difficulty, statistics, learning analytics |
+| **Accessibility** | Manual implementation | Built-in WCAG compliance |
+| **Adaptivity** | Static | Dynamic, adaptive questioning |
+
+## Benefits for Educational Institutions
+
+### For Schools & Universities
+- **Vendor Freedom**: Switch between assessment tools without losing content
+- **Cost Savings**: Avoid vendor lock-in and negotiate better contracts
+- **Quality Assurance**: Standardized assessment delivery and scoring
+- **Compliance**: Built-in accessibility and privacy protections
+
+### For Educators
+- **Content Reuse**: Use the same questions across different platforms
+- **Collaboration**: Share assessments with colleagues using different tools
+- **Analytics**: Consistent reporting and learning analytics
+- **Flexibility**: Choose the best tools for specific assessment needs
+
+### For Developers & EdTech
+- **Interoperability**: Build tools that work with existing QTI content
+- **Standards Compliance**: Follow established best practices
+- **Certification**: 1EdTech certification program ensures compatibility
+- **Innovation**: Focus on features rather than proprietary formats
+
+## QTI in the Alpha School Context
+
+For Alpha School's educational technology stack, QTI provides:
+
+### Assessment Integration
+- **Seamless Testing**: Integrate with Alpha School's 2-hour learning model
+- **Progress Tracking**: Align assessments with student progress APIs
+- **AI Tutoring**: Feed assessment data into personalized learning algorithms
+- **Multi-Campus**: Consistent assessment delivery across all Alpha School locations
+
+### Technical Advantages
+- **Scalability**: Handle assessments for rapid campus expansion
+- **Flexibility**: Support diverse assessment types for different learning objectives
+- **Analytics**: Rich data for measuring learning velocity and mastery
+- **Accessibility**: Ensure all students can access assessments effectively
+
+## QTI Ecosystem & Tools
+
+### Popular QTI Players/Engines
+- **QTI 3 Player** (amp-up.io): JavaScript component for QTI 3.0 content
+- **QTI.JS**: Full QTI 2.2 delivery engine in JavaScript
+- **TAO Platform**: Open-source assessment platform with QTI support
+- **Canvas, Blackboard, Moodle**: Major LMS platforms with QTI support
+
+### Authoring Tools
+- Many commercial assessment authoring tools export QTI
+- Open-source options available for creating QTI content
+- Conversion tools for migrating from proprietary formats
+
+## Getting Started with QTI
+
+### For Content Creators
+1. **Choose QTI-certified authoring tools**
+2. **Export content in QTI format**
+3. **Test across different delivery systems**
+4. **Validate compliance using 1EdTech tools**
+
+### For Developers
+1. **Review QTI specification documents**
+2. **Explore existing open-source implementations**
+3. **Consider QTI certification for your products**
+4. **Join the 1EdTech community for support**
+
+### For Institutions
+1. **Require QTI support in procurement**
+2. **Plan migration strategies for existing content**
+3. **Train staff on QTI benefits and workflows**
+4. **Establish QTI governance policies**
+
+## Resources & Learning
+
+- **1EdTech QTI Specification**: Official technical documentation
+- **QTI Conformance Testing**: Validation tools and certification
+- **Community Forums**: Developer and educator support communities
+- **Best Practices Guides**: Implementation recommendations
+- **Sample Content**: Example QTI assessments for testing
+
+QTI represents the future of assessment interoperability, enabling educational institutions to choose the best tools for their needs while maintaining full control over their assessment content and data.

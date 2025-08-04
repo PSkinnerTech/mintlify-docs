@@ -1,0 +1,226 @@
+---
+title: "OneRoster v1.2 Integration"
+description: "Complete OneRoster compliance for educational data standards in TimeBack"
+---
+
+## OneRoster v1.2 Integration
+
+TimeBack provides full compliance with OneRoster v1.2 standards, ensuring seamless integration with existing Student Information Systems (SIS) and educational data management platforms.
+
+## What is OneRoster?
+
+OneRoster is an educational data standard developed by 1EdTech Consortium that enables the secure exchange of class rosters, course information, and gradebook data between educational technology applications.
+
+## TimeBack's OneRoster Implementation
+
+### Organizational Hierarchy
+
+TimeBack supports the complete OneRoster organizational structure:
+
+**Districts**
+- Top-level organizational units
+- Multi-campus management
+- District-wide policies and settings
+
+**Schools**
+- Individual campus entities
+- School-specific configurations
+- Local administrative control
+
+**Classes**
+- Specific course instances
+- Teacher and student assignments
+- Schedule and location management
+
+### Core Data Models
+
+#### Organizations
+```typescript
+interface Organization {
+  id: string;
+  name: string;
+  type: "district" | "school" | "department";
+  parentId?: string;
+  identifier?: string; // NCES ID or similar
+  status: "active" | "tobedeleted";
+}
+```
+
+#### Academic Sessions
+- **School Years**: Annual academic periods
+- **Terms**: Semesters, quarters, or custom periods
+- **Grading Periods**: Assessment timeframes
+- **Class Periods**: Daily schedule slots
+
+#### Courses and Classes
+```typescript
+interface Course {
+  id: string;
+  title: string;
+  courseCode: string;
+  grades: string[];
+  subjects: string[];
+  orgId: string;
+  status: "active" | "tobedeleted";
+}
+
+interface Class {
+  id: string;
+  title: string;
+  classCode: string;
+  classType: "homeroom" | "scheduled";
+  location?: string;
+  courseId: string;
+  schoolId: string;
+  termIds: string[];
+  periods?: string[];
+  status: "active" | "tobedeleted";
+}
+```
+
+#### Users and Enrollments
+- **Students**: Learner accounts with grade levels
+- **Teachers**: Educator accounts with subject specializations
+- **Administrators**: Campus and district management roles
+- **Enrollments**: User-to-class relationships with roles
+
+## OneRoster API Endpoints
+
+TimeBack exposes complete OneRoster v1.2 REST APIs:
+
+### Rostering Endpoints
+- `GET /ims/oneroster/v1p2/orgs` - List organizations
+- `GET /ims/oneroster/v1p2/schools` - List schools
+- `GET /ims/oneroster/v1p2/courses` - List courses
+- `GET /ims/oneroster/v1p2/classes` - List classes
+- `GET /ims/oneroster/v1p2/users` - List users
+- `GET /ims/oneroster/v1p2/enrollments` - List enrollments
+- `GET /ims/oneroster/v1p2/academicSessions` - List academic sessions
+
+### Gradebook Endpoints
+- `GET /ims/oneroster/v1p2/categories` - Grade categories
+- `GET /ims/oneroster/v1p2/lineItems` - Assignments and assessments
+- `GET /ims/oneroster/v1p2/results` - Student results and scores
+
+### Resource Endpoints
+- `GET /ims/oneroster/v1p2/resources` - Educational resources
+- `GET /ims/oneroster/v1p2/courseResources` - Course-resource associations
+- `GET /ims/oneroster/v1p2/classResources` - Class-resource associations
+
+## TimeBack-Specific Extensions
+
+### Enhanced Metadata
+TimeBack extends OneRoster with educational optimization data:
+
+```json
+{
+  "timeback.xp": 150,
+  "timeback.masteryLevel": "proficient",
+  "timeback.attemptCount": 2,
+  "timeback.timeSpent": 2400,
+  "timeback.learningVelocity": 0.85,
+  "timeback.nextRecommendation": "algebra-2-intro"
+}
+```
+
+### Learning Analytics Integration
+- Time-on-task tracking for each assignment
+- Mastery progression indicators
+- Learning velocity calculations
+- Personalized learning path data
+
+## Data Synchronization
+
+### Automated Sync
+- Real-time updates from SIS systems
+- Batch processing for large datasets
+- Conflict resolution and error handling
+- Data validation and integrity checks
+
+### Sync Configuration
+```typescript
+interface SyncConfig {
+  source: "sis" | "manual" | "api";
+  frequency: "realtime" | "hourly" | "daily";
+  scope: string[]; // Organizations to sync
+  enabled: boolean;
+}
+```
+
+## Compliance and Standards
+
+### OneRoster v1.2 Certification
+- Full compliance with OneRoster v1.2 specification
+- Certified data exchange patterns
+- Standard error handling and responses
+- OAuth 2.0 authentication support
+
+### Educational Privacy
+- FERPA compliance for student data
+- COPPA protections for students under 13
+- Data minimization and retention policies
+- Audit trails for data access
+
+## Integration Benefits
+
+### For Schools
+- **Seamless Data Flow**: Automatic roster updates from existing SIS
+- **Reduced Manual Work**: Eliminates duplicate data entry
+- **Standards Compliance**: Industry-standard data exchange
+- **Vendor Flexibility**: Works with any OneRoster-compatible system
+
+### For Developers
+- **Standard APIs**: Well-documented OneRoster endpoints
+- **Consistent Data Models**: Predictable data structures
+- **Authentication**: OAuth 2.0 and API key support
+- **Error Handling**: Standard HTTP response codes and messages
+
+### For Students and Teachers
+- **Always Up-to-Date**: Real-time roster and grade synchronization
+- **Single Source of Truth**: Consistent data across all platforms
+- **Improved Accuracy**: Automated data validation and verification
+- **Enhanced Privacy**: Secure, compliant data handling
+
+## Implementation Examples
+
+### Syncing Class Rosters
+```typescript
+// Fetch current enrollments for a class
+const enrollments = await fetch('/ims/oneroster/v1p2/enrollments?filter=classId="class-math-6-01"');
+
+// Process enrollments with TimeBack extensions
+enrollments.forEach(enrollment => {
+  if (enrollment.role === 'student') {
+    // Track student learning metrics
+    updateLearningAnalytics(enrollment.userId, enrollment.classId);
+  }
+});
+```
+
+### Grade Passback Integration
+```typescript
+// Create gradebook line item
+const lineItem = {
+  id: "lineitem-quiz-1",
+  title: "Chapter 1 Quiz",
+  classId: "class-math-6-01",
+  categoryId: "category-assessments",
+  resultValueMax: "100",
+  assignDate: "2024-01-15",
+  dueDate: "2024-01-22"
+};
+
+// Submit student result with TimeBack extensions
+const result = {
+  lineItemId: "lineitem-quiz-1",
+  studentId: "student-123",
+  score: "88",
+  metadata: {
+    "timeback.xp": 150,
+    "timeback.masteryLevel": "proficient",
+    "timeback.timeSpent": 1800
+  }
+};
+```
+
+TimeBack's OneRoster integration ensures that all educational data flows seamlessly while maintaining the highest standards for privacy, security, and educational effectiveness.

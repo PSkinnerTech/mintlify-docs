@@ -1,0 +1,108 @@
+---
+title: "Get Student"
+description: "Returns details for a specific student"
+openapi: "GET /students/{id}"
+---
+
+## Overview
+
+Retrieves detailed information about a specific student by their ID. This endpoint returns comprehensive student data including their profile information, organization memberships, and account status.
+
+## Path Parameters
+
+- **id** (string, required): Unique student identifier
+
+## Usage Examples
+
+### Get Student by ID
+Retrieve complete information for a specific student:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Using API Key Authentication
+Alternative authentication method:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students/student-123" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "student": {
+      "id": "student-123",
+      "email": "john.doe@school.edu",
+      "name": "John Doe",
+      "gradeLevel": "6",
+      "organizationIds": ["school-123", "district-456"],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-20T14:45:00Z"
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T10:30:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+## Response Fields
+
+- **id**: Unique student identifier
+- **email**: Student's email address
+- **name**: Full name of the student
+- **gradeLevel**: Current grade level
+- **organizationIds**: Array of organization IDs the student belongs to
+- **isActive**: Whether the student account is currently active
+- **createdAt**: Timestamp when the account was created
+- **updatedAt**: Timestamp of last account modification
+
+## Error Responses
+
+### 404 Not Found
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RES001",
+    "message": "Resource not found"
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T10:30:00Z",
+    "requestId": "req_1234567890"
+  }
+}
+```
+
+### 403 Forbidden - Insufficient Permissions
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH003",
+    "message": "Insufficient permissions for this operation"
+  }
+}
+```
+
+## Access Control
+
+- Users can only access students within their permitted organizations
+- Administrators can access all students within their organizational scope
+- API keys must have appropriate student read permissions
+
+## Use Cases
+
+- Retrieving student profile information for display
+- Verifying student enrollment and organization membership
+- Checking account status before enrollment operations
+- Auditing student account details

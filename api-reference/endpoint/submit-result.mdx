@@ -1,0 +1,123 @@
+---
+title: "Submit Result"
+description: "Creates a new assessment result or grade with TimeBack analytics"
+openapi: "POST /results"
+---
+
+## Overview
+
+Submit assessment results with rich TimeBack metadata including experience points (XP), mastery levels, and time tracking. This endpoint integrates with TimeBack's learning analytics to provide comprehensive student progress tracking.
+
+## Request Body
+
+Required fields:
+- **lineItemId** (string): Assignment/assessment identifier
+- **studentId** (string): Student identifier
+
+Optional fields:
+- **score** (string): Student score/grade
+- **comment** (string): Teacher comment on the result
+- **metadata** (object): TimeBack-specific metadata
+
+## TimeBack Enhanced Features
+
+This endpoint supports TimeBack's unique educational features through the `metadata` object:
+
+- **timeback.xp** (integer): Experience points earned
+- **timeback.masteryLevel** (string): Student mastery level
+- **timeback.attemptCount** (integer): Number of attempts made
+- **timeback.timeSpent** (integer): Time spent in seconds
+
+## Usage Examples
+
+### Basic Grade Submission
+Submit a simple grade:
+
+```bash
+curl -X POST "https://core.timebackapi.com/results" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lineItemId": "assignment-123",
+    "studentId": "student-456",
+    "score": "85",
+    "comment": "Good work on problem solving!"
+  }'
+```
+
+### Enhanced TimeBack Submission
+Submit with full TimeBack analytics:
+
+```bash
+curl -X POST "https://core.timebackapi.com/results" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lineItemId": "assignment-123",
+    "studentId": "student-456",
+    "score": "95",
+    "comment": "Excellent mastery of concepts!",
+    "metadata": {
+      "timeback.xp": 150,
+      "timeback.masteryLevel": "proficient",
+      "timeback.attemptCount": 1,
+      "timeback.timeSpent": 2400
+    }
+  }'
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "result": {
+      "id": "result-789",
+      "lineItemId": "assignment-123",
+      "studentId": "student-456",
+      "score": "95",
+      "scoreStatus": "fullyGraded",
+      "comment": "Excellent mastery of concepts!",
+      "metadata": {
+        "timeback.xp": 150,
+        "timeback.masteryLevel": "proficient",
+        "timeback.attemptCount": 1,
+        "timeback.timeSpent": 2400
+      }
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+## Mastery Levels
+
+TimeBack supports the following mastery progression:
+
+- `not-started`: Student hasn't begun the assignment
+- `in-progress`: Currently working on the material
+- `developing`: Basic understanding demonstrated
+- `proficient`: Solid grasp of concepts
+- `advanced`: Exceeds expectations
+- `mastery`: Complete understanding achieved
+
+## Score Status
+
+Results can have the following scoring status:
+- `exempt`: Student is exempt from this assignment
+- `tobeGraded`: Submission received, awaiting grading
+- `partiallyGraded`: Partial feedback provided
+- `fullyGraded`: Complete grade and feedback provided
+
+## Integration Notes
+
+Results submitted through this endpoint:
+- Automatically update student progress dashboards
+- Contribute to learning velocity calculations
+- Trigger adaptive learning recommendations
+- Update parent/guardian notifications

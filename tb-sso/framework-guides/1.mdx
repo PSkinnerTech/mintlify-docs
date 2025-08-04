@@ -1,0 +1,548 @@
+---
+title: "Vite + React + TS Integraiton"
+description: "Step-by-step guide to integrate TimeBack SSO into a Vite/React/TypeScript application"
+---
+
+## Vite + React + TypeScript Integration
+
+This tutorial will guide you through integrating TimeBack SSO into your Vite + React + TypeScript application. This is part of the Framework Guides series for TimeBack SSO integration.
+
+<Warning>
+**Prerequisites**: Ensure you have access to the TimeBack API server and your application domain is whitelisted for SSO.
+</Warning>
+
+### Step 1: Installation
+
+Install the TimeBack SSO SDK in your Vite + React + TypeScript project:
+
+<CodeGroup>
+
+```bash npm
+npm install @timeback/sso-sdk
+```
+
+```bash yarn
+yarn add @timeback/sso-sdk
+```
+
+```bash bun
+bun add @timeback/sso-sdk
+```
+
+</CodeGroup>
+
+### Step 2: Basic Setup
+
+Create a TimeBack SSO instance in your main application file:
+
+```typescript src/lib/auth.ts
+import { TimeBackSSO } from '@timeback/sso-sdk';
+
+// Initialize the SSO SDK
+export const sso = new TimeBackSSO({
+  apiBaseUrl: process.env.VITE_TIMEBACK_API_URL || 'http://localhost:8080',
+  storageKey: 'alpha_school_token',
+  autoCheck: true // Automatically check for SSO on initialization
+});
+```
+
+### Step 3: Environment Configuration
+
+Add your TimeBack API configuration to your `.env` file:
+
+```bash .env
+VITE_TIMEBACK_API_URL=https://api.timeback.alpha.school
+VITE_APP_DOMAIN=https://your-app.alpha.school
+```
+
+### Step 4: React Hook Implementation
+
+Create a custom React hook for managing authentication state:
+
+```typescript src/hooks/useAuth.ts
+import { useState, useEffect, useCallback } from 'react';
+import { sso } from '../lib/auth';
+
+interface SSOUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: string;
+}
+
+export const useAuth = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<SSOUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check for existing authentication on mount
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // First, check if we have a stored token
+      const token = sso.getToken();
+      if (token) {
+        const response = await sso.request('/api/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.data.user);
+          setIsAuthenticated(true);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // If no valid token, check for SSO session
+      const ssoResult = await sso.checkSession();
+      if (ssoResult.authenticated && ssoResult.user) {
+        setUser(ssoResult.user);
+        setIsAuthenticated(true);
+      }
+    } catch (err) {
+      setError('Authentication check failed');
+      console.error('Auth check error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const login = useCallback(async (email: string, password: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const result = await sso.login(email, password);
+      if (result.success && result.user) {
+        setUser(result.user);
+        setIsAuthenticated(true);
+        return { success: true };
+      } else {
+        setError('Invalid credentials');
+        return { success: false, error: 'Invalid credentials' };
+      }
+    } catch (err) {
+      const errorMessage = 'Login failed';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(async (revokeAllSessions = false) => {
+    setLoading(true);
+    try {
+      await sso.logout(revokeAllSessions);
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  return {
+    isAuthenticated,
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    checkAuthStatus,
+    sso // Expose SSO instance for advanced usage
+  };
+};
+```
+
+### Step 5: Authentication Component
+
+Create a login/authentication component:
+
+```typescript src/components/AuthComponent.tsx
+import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
+
+export const AuthComponent: React.FC = () => {
+  const { isAuthenticated, user, loading, error, login, logout } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginLoading(true);
+    
+    const result = await login(email, password);
+    if (result.success) {
+      setEmail('');
+      setPassword('');
+    }
+    
+    setLoginLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="auth-loading">
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="auth-success">
+        <h2>Welcome, {user.name || user.email}!</h2>
+        <div className="user-info">
+          <p><strong>Role:</strong> {user.role}</p>
+          <p><strong>Email:</strong> {user.email}</p>
+        </div>
+        <div className="auth-actions">
+          <button 
+            onClick={() => logout(false)}
+            className="btn btn-secondary"
+          >
+            Logout This Device
+          </button>
+          <button 
+            onClick={() => logout(true)}
+            className="btn btn-danger"
+          >
+            Logout All Devices
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="auth-login">
+      <h2>Alpha School Login</h2>
+      {error && <div className="error-message">{error}</div>}
+      
+      <form onSubmit={handleLogin} className="login-form">
+        <div className="form-group">
+          <label htmlFor="email">Email:</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={loginLoading}
+            placeholder="student@alpha.school"
+          />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="password">Password:</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            disabled={loginLoading}
+          />
+        </div>
+        
+        <button 
+          type="submit" 
+          disabled={loginLoading || !email || !password}
+          className="btn btn-primary"
+        >
+          {loginLoading ? 'Logging in...' : 'Login'}
+        </button>
+      </form>
+      
+      <div className="auth-info">
+        <p>This app supports TimeBack SSO - login once and access all Alpha School services!</p>
+      </div>
+    </div>
+  );
+};
+```
+
+### Step 6: Protected Route Implementation
+
+Create a component for protecting routes that require authentication:
+
+```typescript src/components/ProtectedRoute.tsx
+import React from 'react';
+import { useAuth } from '../hooks/useAuth';
+
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  requiredRole?: string;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  fallback,
+  requiredRole 
+}) => {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return fallback || <AuthComponent />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return (
+      <div className="access-denied">
+        <h2>Access Denied</h2>
+        <p>You don't have permission to access this resource.</p>
+        <p>Required role: {requiredRole}</p>
+        <p>Your role: {user?.role}</p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+};
+```
+
+### Step 7: Main App Integration
+
+Integrate the authentication system into your main App component:
+
+```typescript src/App.tsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthComponent } from './components/AuthComponent';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { useAuth } from './hooks/useAuth';
+
+// Your app components
+import Dashboard from './pages/Dashboard';
+import StudentPortal from './pages/StudentPortal';
+import TeacherPortal from './pages/TeacherPortal';
+import AdminPortal from './pages/AdminPortal';
+
+function App() {
+  const { isAuthenticated, user } = useAuth();
+
+  return (
+    <Router>
+      <div className="app">
+        <header className="app-header">
+          <h1>Alpha School Application</h1>
+          {isAuthenticated && (
+            <nav>
+              <a href="/dashboard">Dashboard</a>
+              {user?.role === 'student' && <a href="/student">Student Portal</a>}
+              {user?.role === 'teacher' && <a href="/teacher">Teacher Portal</a>}
+              {user?.role === 'admin' && <a href="/admin">Admin Portal</a>}
+            </nav>
+          )}
+        </header>
+
+        <main className="app-main">
+          <Routes>
+            <Route path="/login" element={<AuthComponent />} />
+            
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/student" element={
+              <ProtectedRoute requiredRole="student">
+                <StudentPortal />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/teacher" element={
+              <ProtectedRoute requiredRole="teacher">
+                <TeacherPortal />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminPortal />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/" element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+            } />
+          </Routes>
+        </main>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+```
+
+### Step 8: Styling (Optional)
+
+Add some basic CSS for your authentication components:
+
+```css src/styles/auth.css
+.auth-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.auth-success {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.user-info {
+  background: white;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-login {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background: #007AFE;
+  color: white;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.auth-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #e7f3ff;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #0066cc;
+}
+```
+
+## Testing Your Integration
+
+### 1. Basic Authentication Test
+
+1. Start your development server
+2. Navigate to your application
+3. Try logging in with valid Alpha School credentials
+4. Verify that you're redirected to the dashboard
+
+### 2. SSO Cross-Domain Test
+
+1. Open your app in one browser tab
+2. Login successfully
+3. Open the same app on a different port (if available) or another Alpha School domain
+4. Verify automatic authentication
+
+### 3. Role-Based Access Test
+
+1. Login with different user roles (student, teacher, admin)
+2. Verify that role-specific routes are properly protected
+3. Test access denied scenarios
+
+## Next Steps
+
+Once you have the basic Vite/React/TypeScript integration working, you can:
+
+1. **Add Error Boundaries**: Implement React error boundaries for better error handling
+2. **Enhance Loading States**: Add skeleton screens and better loading indicators
+3. **Implement Token Refresh**: Add automatic token refresh logic
+4. **Add Analytics**: Track authentication events for monitoring
+5. **Customize Styling**: Match your application's design system
+
+## Framework Expansions (Coming Soon)
+
+This tutorial will be expanded to include integration guides for:
+
+- **Next.js** (App Router & Pages Router)
+- **Vue 3 + Vite + TypeScript**
+- **Angular**
+- **Svelte/SvelteKit**
+- **Vanilla JavaScript**
+- **Node.js/Express Backend**
+
+<Info>
+**Need Help?** If you encounter issues during integration, check the [TimeBack SSO overview documentation](/tb-sso/sso-overview) or contact the Alpha School development team.
+</Info>

@@ -1,0 +1,486 @@
+---
+title: "Administrative Dashboard"
+description: "Comprehensive admin management capabilities for TimeBack system administration"
+---
+
+## Administrative Dashboard
+
+TimeBack's administrative dashboard provides comprehensive system management capabilities for administrators at district, school, and system levels, offering user management, API key administration, system monitoring, and audit logging.
+
+## User Management
+
+### User Roles and Permissions
+TimeBack supports a hierarchical role system:
+
+```typescript
+type UserRole = "user" | "admin" | "superadmin";
+
+interface UserPermissions {
+  users: {
+    read: boolean;
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+    promote: boolean;
+  };
+  apiKeys: {
+    read: boolean;
+    create: boolean;
+    revoke: boolean;
+    manage: boolean;
+  };
+  system: {
+    logs: boolean;
+    metrics: boolean;
+    settings: boolean;
+    maintenance: boolean;
+  };
+  organizations: {
+    read: boolean;
+    create: boolean;
+    update: boolean;
+    delete: boolean;
+  };
+}
+```
+
+### Role Capabilities
+
+#### User
+- **Basic Access**: Read own profile and associated data
+- **Limited Scope**: Access only to assigned classes and students
+- **No Administrative Functions**: Cannot manage other users or system settings
+
+#### Admin
+- **Organizational Management**: Full control within assigned organization
+- **User Administration**: Create, update, and manage users in their scope
+- **Resource Management**: Allocate and manage educational resources
+- **Reporting Access**: Generate reports for their organizational scope
+
+#### Superadmin
+- **System-Wide Access**: Full control across all organizations
+- **User Promotion**: Can promote users to admin roles
+- **API Management**: Complete API key lifecycle management
+- **System Configuration**: Access to global settings and maintenance
+
+### User Administration Interface
+
+#### User Listing and Search
+```typescript
+interface UserManagementView {
+  filters: {
+    role: UserRole[];
+    organization: string[];
+    status: ("active" | "inactive")[];
+    lastLogin: DateRange;
+  };
+  sorting: {
+    field: "email" | "name" | "role" | "lastLogin" | "createdAt";
+    direction: "asc" | "desc";
+  };
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+  };
+}
+```
+
+#### User Profile Management
+```typescript
+interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  cognitoId: string;
+  isActive: boolean;
+  organizationIds: string[];
+  lastLogin?: Date;
+  loginCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  metadata: {
+    department?: string;
+    title?: string;
+    phoneNumber?: string;
+    emergencyContact?: string;
+  };
+}
+```
+
+## API Key Management
+
+### API Key System
+Comprehensive API key management for system integrations:
+
+```typescript
+interface ApiKey {
+  id: string;
+  name: string;
+  description?: string;
+  keyHash: string; // Hashed for security
+  createdBy: string;
+  organizationId?: string;
+  permissions: ApiPermission[];
+  rateLimit: {
+    requestsPerMinute: number;
+    requestsPerHour: number;
+    requestsPerDay: number;
+  };
+  restrictions: {
+    ipWhitelist?: string[];
+    referrerWhitelist?: string[];
+    allowedEndpoints?: string[];
+  };
+  status: "active" | "revoked" | "expired";
+  createdAt: Date;
+  lastUsedAt?: Date;
+  expiresAt?: Date;
+  usageStats: {
+    totalRequests: number;
+    requestsToday: number;
+    errorRate: number;
+    averageResponseTime: number;
+  };
+}
+```
+
+### API Permission Scopes
+```typescript
+interface ApiPermission {
+  resource: "users" | "students" | "classes" | "grades" | "resources" | "analytics";
+  actions: ("read" | "write" | "delete")[];
+  scope: "own" | "organization" | "all";
+  conditions?: {
+    timeframe?: DateRange;
+    dataFilters?: Record<string, any>;
+  };
+}
+```
+
+### API Key Lifecycle Management
+
+#### Creation Process
+1. **Request Validation**: Verify admin permissions and organizational scope
+2. **Permission Configuration**: Define specific API access rights
+3. **Security Settings**: Configure rate limits and IP restrictions
+4. **Key Generation**: Create cryptographically secure API key
+5. **Audit Logging**: Record creation event with full context
+
+#### Usage Monitoring
+```typescript
+interface ApiKeyUsage {
+  keyId: string;
+  timestamp: Date;
+  endpoint: string;
+  method: string;
+  responseCode: number;
+  responseTime: number;
+  requestSize: number;
+  responseSize: number;
+  clientIp: string;
+  userAgent: string;
+  organizationId?: string;
+}
+```
+
+#### Automated Alerts
+- **Unusual Usage Patterns**: Detect potential security threats
+- **Rate Limit Breaches**: Alert when keys exceed configured limits
+- **Error Rate Spikes**: Notify when API errors increase significantly
+- **Expiration Warnings**: Remind administrators of upcoming key expirations
+
+## System Monitoring
+
+### Health Check Dashboard
+Real-time system status monitoring:
+
+```typescript
+interface SystemHealth {
+  overall: "healthy" | "degraded" | "down";
+  services: {
+    api: ServiceStatus;
+    database: ServiceStatus;
+    auth: ServiceStatus;
+    sso: ServiceStatus;
+    storage: ServiceStatus;
+  };
+  metrics: {
+    responseTime: number;
+    throughput: number;
+    errorRate: number;
+    uptime: number;
+  };
+  alerts: SystemAlert[];
+}
+
+interface ServiceStatus {
+  status: "up" | "down" | "degraded";
+  responseTime: number;
+  lastCheck: Date;
+  uptime: number;
+  version: string;
+}
+```
+
+### Performance Metrics
+```typescript
+interface PerformanceMetrics {
+  timeframe: DateRange;
+  api: {
+    requestsPerSecond: number;
+    averageResponseTime: number;
+    errorRate: number;
+    slowestEndpoints: EndpointMetric[];
+  };
+  database: {
+    connectionPoolSize: number;
+    queryPerformance: QueryMetric[];
+    slowQueries: SlowQuery[];
+    diskUsage: number;
+  };
+  authentication: {
+    loginSuccessRate: number;
+    ssoUsageRate: number;
+    sessionDuration: number;
+    activeUsers: number;
+  };
+}
+```
+
+### Resource Utilization
+```typescript
+interface ResourceUsage {
+  server: {
+    cpuUsage: number;
+    memoryUsage: number;
+    diskUsage: number;
+    networkIO: number;
+  };
+  database: {
+    connections: number;
+    queryQueue: number;
+    cacheHitRate: number;
+    replicationLag: number;
+  };
+  storage: {
+    s3Usage: number;
+    cdnBandwidth: number;
+    fileOperations: number;
+  };
+}
+```
+
+## Audit Logging
+
+### Comprehensive Activity Tracking
+All system activities are logged for compliance and security:
+
+```typescript
+interface AuditLog {
+  id: string;
+  timestamp: Date;
+  userId?: string;
+  organizationId?: string;
+  action: AuditAction;
+  resource: string;
+  resourceId?: string;
+  details: Record<string, any>;
+  ipAddress: string;
+  userAgent: string;
+  sessionId?: string;
+  apiKeyId?: string;
+  outcome: "success" | "failure" | "partial";
+  errorMessage?: string;
+}
+
+type AuditAction = 
+  | "user.create" | "user.update" | "user.delete" | "user.login" | "user.logout"
+  | "apikey.create" | "apikey.revoke" | "apikey.use"
+  | "data.read" | "data.write" | "data.delete"
+  | "system.config" | "system.maintenance"
+  | "organization.create" | "organization.update";
+```
+
+### Audit Trail Features
+
+#### Advanced Filtering
+```typescript
+interface AuditFilter {
+  dateRange: DateRange;
+  userIds?: string[];
+  organizationIds?: string[];
+  actions?: AuditAction[];
+  resources?: string[];
+  outcomes?: ("success" | "failure" | "partial")[];
+  ipAddresses?: string[];
+  searchQuery?: string;
+}
+```
+
+#### Export and Reporting
+- **CSV Export**: Downloadable audit reports for compliance
+- **PDF Reports**: Formatted reports for management review
+- **Real-time Streaming**: Live audit feed for security monitoring
+- **Scheduled Reports**: Automated audit summaries
+
+#### Compliance Features
+- **Data Retention**: Configurable retention periods for different log types
+- **Immutable Storage**: Tamper-proof audit log storage
+- **Digital Signatures**: Cryptographic verification of log integrity
+- **Chain of Custody**: Complete tracking of data access and modifications
+
+## Dashboard Interfaces
+
+### Executive Dashboard
+High-level overview for leadership:
+
+```typescript
+interface ExecutiveDashboard {
+  summary: {
+    totalUsers: number;
+    activeOrganizations: number;
+    systemUptime: number;
+    dataGrowth: number;
+  };
+  trends: {
+    userGrowth: TrendData[];
+    usageGrowth: TrendData[];
+    performanceMetrics: TrendData[];
+  };
+  alerts: {
+    critical: Alert[];
+    warnings: Alert[];
+    informational: Alert[];
+  };
+  compliance: {
+    auditStatus: "compliant" | "non-compliant" | "under-review";
+    lastAudit: Date;
+    nextAudit: Date;
+    findings: ComplianceFinding[];
+  };
+}
+```
+
+### Technical Operations Dashboard
+Detailed system management for IT teams:
+
+```typescript
+interface TechnicalDashboard {
+  infrastructure: {
+    servers: ServerStatus[];
+    databases: DatabaseStatus[];
+    services: ServiceStatus[];
+    monitoring: MonitoringData[];
+  };
+  performance: {
+    realTimeMetrics: RealTimeMetric[];
+    historicalTrends: HistoricalData[];
+    alertThresholds: AlertThreshold[];
+  };
+  maintenance: {
+    scheduledTasks: MaintenanceTask[];
+    systemUpdates: SystemUpdate[];
+    backupStatus: BackupStatus[];
+  };
+}
+```
+
+## Security Features
+
+### Access Control
+- **Multi-Factor Authentication**: Required for admin access
+- **Session Management**: Automatic timeout and concurrent session limits
+- **IP Restrictions**: Whitelist-based access control
+- **Role-Based Permissions**: Granular access control
+
+### Security Monitoring
+```typescript
+interface SecurityMonitoring {
+  threatDetection: {
+    suspiciousLogins: SecurityEvent[];
+    bruteForceAttempts: SecurityEvent[];
+    anomalousApiUsage: SecurityEvent[];
+    unauthorizedAccess: SecurityEvent[];
+  };
+  compliance: {
+    dataProtection: ComplianceStatus;
+    accessAudits: AuditStatus;
+    privacyControls: PrivacyStatus;
+  };
+  incidents: {
+    active: SecurityIncident[];
+    resolved: SecurityIncident[];
+    mitigation: MitigationAction[];
+  };
+}
+```
+
+## API Endpoints
+
+### User Management APIs
+```typescript
+// List users with filtering
+GET /api/admin/users
+?role=admin&organization=school-123&status=active
+
+// Get user details
+GET /api/admin/users/{userId}
+
+// Create new user
+POST /api/admin/users
+{
+  "email": "teacher@school.edu",
+  "name": "New Teacher",
+  "role": "user",
+  "organizationIds": ["school-123"]
+}
+
+// Update user role
+PUT /api/admin/users/{userId}/role
+{
+  "role": "admin",
+  "organizationScope": ["school-123"]
+}
+
+// Deactivate user
+DELETE /api/admin/users/{userId}
+```
+
+### API Key Management APIs
+```typescript
+// List API keys
+GET /api/admin/api-keys
+?organization=school-123&status=active
+
+// Create API key
+POST /api/admin/api-keys
+{
+  "name": "Integration Key",
+  "permissions": ["read:students", "read:grades"],
+  "organizationId": "school-123",
+  "rateLimit": {
+    "requestsPerMinute": 100
+  }
+}
+
+// Revoke API key
+DELETE /api/admin/api-keys/{keyId}
+```
+
+### System Monitoring APIs
+```typescript
+// Get system health
+GET /api/admin/health
+
+// Get performance metrics
+GET /api/admin/metrics
+?timeframe=24h&service=api
+
+// Get audit logs
+GET /api/admin/audit-logs
+?action=user.login&dateRange=2024-01-01:2024-01-31
+```
+
+TimeBack's administrative dashboard provides the comprehensive tools needed to manage complex educational technology environments while maintaining security, compliance, and optimal performance.

@@ -1,0 +1,145 @@
+---
+title: "Update Student"
+description: "Updates an existing student's information"
+openapi: "PUT /students/{id}"
+---
+
+## Overview
+
+Updates an existing student's profile information. This endpoint allows authorized users to modify student details such as name, grade level, and account status.
+
+## Path Parameters
+
+- **id** (string, required): Unique student identifier
+
+## Request Body
+
+All fields are optional (partial updates supported):
+- **name** (string): Student full name
+- **gradeLevel** (string): Current grade level
+- **isActive** (boolean): Whether the student account is active
+
+## Usage Examples
+
+### Update Student Name
+Update only the student's name:
+
+```bash
+curl -X PUT "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Michael Doe"
+  }'
+```
+
+### Update Grade Level
+Promote student to next grade:
+
+```bash
+curl -X PUT "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "gradeLevel": "7"
+  }'
+```
+
+### Deactivate Student Account
+Temporarily disable student access:
+
+```bash
+curl -X PUT "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isActive": false
+  }'
+```
+
+### Multiple Field Update
+Update multiple fields in a single request:
+
+```bash
+curl -X PUT "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Michael Doe",
+    "gradeLevel": "7",
+    "isActive": true
+  }'
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "student": {
+      "id": "student-123",
+      "email": "john.doe@school.edu",
+      "name": "John Michael Doe",
+      "gradeLevel": "7",
+      "organizationIds": ["school-123"],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-25T16:20:00Z"
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T16:20:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+## Validation Rules
+
+- **Name**: Must be at least 2 characters if provided
+- **Grade Level**: Must be a valid grade level string
+- **isActive**: Must be a boolean value
+
+## Error Responses
+
+### 400 Bad Request - Validation Error
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VAL001",
+    "message": "Invalid input provided",
+    "details": {
+      "field": "gradeLevel",
+      "reason": "Invalid grade level format",
+      "provided": "invalid-grade"
+    }
+  }
+}
+```
+
+### 404 Not Found
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RES001",
+    "message": "Resource not found"
+  }
+}
+```
+
+## Access Control
+
+- Users must have write permissions for the student's organization
+- Only authorized fields can be updated based on user role
+- Email addresses cannot be changed through this endpoint (contact support)
+
+## Important Notes
+
+- Updates preserve existing field values when not specified
+- The `updatedAt` timestamp is automatically updated
+- Student email addresses are immutable and require special procedures to change
+- Deactivating a student may affect their class enrollments and grade access

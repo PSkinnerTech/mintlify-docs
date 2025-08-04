@@ -1,0 +1,195 @@
+---
+title: "What is CLR?"
+description: "Introduction to Common Learning Resources (CLR) and the @superbuilders/clr package"
+---
+
+## What is CLR?
+
+**CLR (Common Learning Resources)** is a standardized approach to educational content management and delivery. In the context of Alpha School's technology stack, CLR represents a unified system for organizing, accessing, and distributing learning materials across all educational platforms.
+
+<Note>
+The @superbuilders/clr package appears to be a specialized implementation for managing common learning resources within Alpha School's ecosystem.
+</Note>
+
+## Core Purpose
+
+CLR solves the challenge of **educational content fragmentation** by providing:
+
+### Unified Resource Management
+- Centralized repository for all learning materials
+- Consistent content structure across different subjects
+- Standardized metadata for educational resources
+- Version control for curriculum updates
+
+### Cross-Platform Compatibility
+- Seamless integration with Alpha School's learning management system
+- Support for various content formats (text, video, interactive)
+- API-driven access for different educational applications
+- Mobile and web platform synchronization
+
+## Key Features
+
+### Content Organization
+- **Hierarchical Structure**: Subjects → Units → Lessons → Resources
+- **Tagging System**: Skill-based categorization for personalized learning
+- **Difficulty Levels**: Adaptive content based on student progress
+- **Prerequisites Mapping**: Clear learning path dependencies
+
+### Resource Types
+- **Text Materials**: Reading assignments, reference documents
+- **Interactive Content**: Simulations, coding exercises, virtual labs
+- **Assessment Items**: Quizzes, tests, project rubrics
+- **Multimedia Assets**: Videos, audio recordings, images
+- **Real-time Activities**: Live tutoring session materials
+
+### Integration Capabilities
+- **TimeBack Sync**: Optimized content delivery based on learning schedules
+- **AI Tutoring**: Resource recommendations for personalized sessions
+- **Progress Tracking**: Learning analytics and mastery measurement
+- **QTI Compatibility**: Standardized assessment integration
+
+## Alpha School Implementation
+
+### For the 2-Hour Learning Model
+CLR enables Alpha School's efficient learning approach by:
+
+- **Pre-selected Content**: Curated resources optimized for rapid comprehension
+- **Just-in-Time Delivery**: Materials provided exactly when needed
+- **Adaptive Sequencing**: Content order based on individual learning patterns
+- **Efficiency Metrics**: Track time-to-mastery for continuous improvement
+
+### Multi-Campus Support
+- **Consistent Curriculum**: Same high-quality resources across all locations
+- **Local Customization**: Regional adaptations while maintaining core standards
+- **Instructor Resources**: Teaching guides and support materials
+- **Parent Transparency**: Family access to learning materials and progress
+
+## Technical Architecture
+
+### API Design
+```typescript
+interface CLRResource {
+  id: string;
+  title: string;
+  type: 'text' | 'video' | 'interactive' | 'assessment';
+  subject: string;
+  gradeLevel: number;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  estimatedDuration: number; // minutes
+  prerequisites: string[];
+  learningObjectives: string[];
+  metadata: ResourceMetadata;
+}
+
+interface ResourceMetadata {
+  author: string;
+  createdDate: Date;
+  lastUpdated: Date;
+  version: string;
+  tags: string[];
+  accessibility: AccessibilityInfo;
+}
+```
+
+### Data Flow
+1. **Content Creation**: Educators author materials using CLR standards
+2. **Quality Review**: Curriculum team validates resources
+3. **System Integration**: Resources uploaded to CLR repository
+4. **Intelligent Delivery**: AI systems recommend optimal content
+5. **Usage Analytics**: Track effectiveness and student engagement
+
+## Benefits for Alpha School
+
+### For Students
+- **Consistent Quality**: All materials meet Alpha School's high standards
+- **Personalized Access**: Content tailored to individual learning needs
+- **Efficient Discovery**: Find relevant resources quickly
+- **Progress Continuity**: Seamless experience across devices and locations
+
+### For Educators (Alpha Guides)
+- **Rich Resource Library**: Comprehensive materials for all subjects
+- **Teaching Support**: Instructor guides and best practices
+- **Real-time Analytics**: Understand which resources work best
+- **Collaborative Tools**: Share and improve materials with colleagues
+
+### For Administrators
+- **Curriculum Oversight**: Central visibility into all learning materials
+- **Quality Assurance**: Standardized review and approval processes
+- **Cost Efficiency**: Reduce duplication and maximize resource utilization
+- **Compliance Tracking**: Ensure materials meet educational standards
+
+## Integration with Alpha School Stack
+
+### TimeBack Integration
+CLR works with TimeBack to optimize content delivery timing:
+- Schedule resource access during peak learning periods
+- Recommend review materials based on retention patterns
+- Balance content types for optimal engagement
+
+### AI Tutoring System
+CLR provides the foundation for personalized tutoring:
+- Supply materials for 1:1 tutoring sessions
+- Track resource effectiveness per student
+- Enable dynamic content recommendations
+
+### Assessment Platform
+CLR integrates with QTI-compliant assessment systems:
+- Link learning resources to assessment items
+- Provide remediation materials based on quiz results
+- Support competency-based progression
+
+## Getting Started with @superbuilders/clr
+
+<Warning>
+Package documentation may be limited as this appears to be an internal Alpha School tool. Contact the development team for implementation details.
+</Warning>
+
+### Installation
+```bash
+npm install @superbuilders/clr
+```
+
+### Basic Usage
+```typescript
+import { CLRClient } from '@superbuilders/clr';
+
+const clr = new CLRClient({
+  apiUrl: process.env.CLR_API_URL,
+  apiKey: process.env.CLR_API_KEY
+});
+
+// Fetch resources for a specific subject
+const mathResources = await clr.getResources({
+  subject: 'mathematics',
+  gradeLevel: 8,
+  difficulty: 'intermediate'
+});
+
+// Get personalized recommendations
+const recommendations = await clr.getRecommendations({
+  studentId: 'student-123',
+  learningObjective: 'algebra-basics'
+});
+```
+
+## Best Practices
+
+### Content Creation
+- Follow Alpha School's content standards and style guide
+- Include clear learning objectives and success criteria
+- Design for mobile-first access
+- Ensure accessibility compliance
+
+### Resource Management
+- Use descriptive titles and comprehensive metadata
+- Tag content with relevant skills and concepts
+- Regular review and update of materials
+- Track usage analytics for continuous improvement
+
+### Integration Guidelines
+- Implement proper error handling for API calls
+- Cache frequently accessed resources
+- Monitor performance impact on learning applications
+- Follow security best practices for student data
+
+CLR represents Alpha School's commitment to providing exceptional educational resources that enable students to learn twice as fast while maintaining the highest quality standards.

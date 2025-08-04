@@ -1,0 +1,140 @@
+---
+title: "Delete Student"
+description: "Removes a student from the system"
+openapi: "DELETE /students/{id}"
+---
+
+## Overview
+
+Permanently removes a student from the TimeBack system. This operation is irreversible and will delete all associated student data including grades, enrollments, and learning analytics.
+
+<Warning>
+This operation is **permanent and irreversible**. All student data, including grades, progress tracking, and learning analytics will be permanently deleted. Consider deactivating the student account instead using the [Update Student](/api-reference/endpoint/update-student) endpoint.
+</Warning>
+
+## Path Parameters
+
+- **id** (string, required): Unique student identifier
+
+## Usage Examples
+
+### Delete Student Account
+Permanently remove a student from the system:
+
+```bash
+curl -X DELETE "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Using API Key Authentication
+Alternative authentication method:
+
+```bash
+curl -X DELETE "https://core.timebackapi.com/students/student-123" \
+  -H "X-API-Key: YOUR_API_KEY"
+```
+
+## Response Format
+
+### Successful Deletion
+```http
+HTTP/1.1 204 No Content
+```
+
+No response body is returned for successful deletions.
+
+## Error Responses
+
+### 404 Not Found
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RES001",
+    "message": "Resource not found"
+  },
+  "metadata": {
+    "timestamp": "2024-01-25T10:30:00Z",
+    "requestId": "req_1234567890"
+  }
+}
+```
+
+### 403 Forbidden - Insufficient Permissions
+```json
+{
+  "success": false,
+  "error": {
+    "code": "AUTH003",
+    "message": "Insufficient permissions for this operation"
+  }
+}
+```
+
+### 409 Conflict - Student Has Active Enrollments
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RES002",
+    "message": "Cannot delete student with active class enrollments",
+    "details": {
+      "activeEnrollments": ["class-456", "class-789"],
+      "suggestion": "Remove enrollments first or deactivate the account"
+    }
+  }
+}
+```
+
+## Access Control
+
+- Only users with administrator privileges can delete students
+- API keys must have student deletion permissions
+- Users can only delete students within their permitted organizations
+
+## Data Deletion Impact
+
+When a student is deleted, the following data is permanently removed:
+
+### Student Profile Data
+- Personal information (name, email, grade level)
+- Account settings and preferences
+- Organization memberships
+
+### Academic Records
+- All grade book entries and results
+- Assignment submissions and feedback
+- Progress tracking and analytics
+
+### Learning Data
+- TimeBack XP points and mastery levels
+- Learning pattern analysis
+- Personalized recommendations
+
+### System Records
+- Authentication tokens and sessions
+- API access logs (student-specific)
+- Audit trail entries
+
+## Recommended Alternative
+
+Instead of deletion, consider **deactivating** the student account:
+
+```bash
+curl -X PUT "https://core.timebackapi.com/students/student-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "isActive": false
+  }'
+```
+
+Deactivation preserves data while preventing system access, allowing for potential reactivation in the future.
+
+## Best Practices
+
+1. **Verify Intent**: Confirm deletion is truly necessary
+2. **Export Data**: Download student records if needed for compliance
+3. **Remove Dependencies**: Clear active enrollments before deletion
+4. **Documentation**: Log the deletion reason for audit purposes
+5. **Consider Deactivation**: Use account deactivation instead when possible

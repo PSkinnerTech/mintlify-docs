@@ -1,0 +1,364 @@
+---
+title: "Vite + React + TS Integration"
+description: "Complete guide for integrating TimeBack SSO SDK into a fresh Vite + React + TypeScript project"
+icon: "plus"
+---
+
+This guide walks you through setting up TimeBack SSO in a completely new Vite application from scratch.
+
+## Prerequisites
+
+- TimeBack API server running (usually on `http://localhost:8080`)
+- Bun or Node.js installed
+- Access to the TimeBack SSO SDK
+
+## Step 1: Create New Vite Project
+
+```bash
+# Create new Vite + React + TypeScript project
+bun create vite my-app --template react-ts
+cd my-app
+bun install
+```
+
+## Step 2: Install TimeBack SSO SDK
+
+Choose one of the following methods:
+
+### Method A: Local File Reference (Development)
+
+If the SDK is on your local machine:
+
+```json
+// package.json
+{
+  "dependencies": {
+    "@timeback/sso-sdk": "file:../path/to/timeback-sso-auth",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}
+```
+
+```bash
+bun install
+```
+
+### Method B: GitHub Repository
+
+If the SDK is published on GitHub:
+
+```bash
+bun add github:this-is-alpha-iota/timeback-sso-auth
+```
+
+### Method C: Built Package Copy
+
+1. Build the SDK:
+   ```bash
+   cd /path/to/timeback-sso-auth
+   bun run build
+   ```
+
+2. Copy the `dist` folder to your project as `src/lib/timeback-sso/`
+
+3. Import directly:
+   ```typescript
+   import { TimeBackSSO } from './lib/timeback-sso/index.js'
+   ```
+
+## Step 3: Basic Integration
+
+Replace your `src/App.tsx` with:
+
+```tsx
+import { useState, useEffect } from 'react'
+import { TimeBackSSO } from '@timeback/sso-sdk'
+import './App.css'
+
+// Initialize SSO SDK
+const sso = new TimeBackSSO({
+  apiBaseUrl: 'http://localhost:8080', // Your TimeBack API URL
+  autoCheck: true
+})
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    checkAuthStatus()
+  }, [])
+
+  const checkAuthStatus = async () => {
+    setLoading(true)
+    
+    // Check for existing token
+    const token = sso.getToken()
+    if (token) {
+      try {
+        const response = await sso.request('/api/auth/me')
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.data.user)
+          setIsAuthenticated(true)
+          setLoading(false)
+          return
+        }
+      } catch (error) {
+        console.error('Token validation failed:', error)
+      }
+    }
+
+    // Check for SSO session
+    try {
+      const result = await sso.checkSession()
+      if (result.authenticated && result.user) {
+        setUser(result.user)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('SSO check failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogin = async (email: string, password: string) => {
+    setLoading(true)
+    try {
+      const result = await sso.login(email, password)
+      if (result.success && result.user) {
+        setUser(result.user)
+        setIsAuthenticated(true)
+      }
+    } catch (error) {
+      console.error('Login failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    setLoading(true)
+    try {
+      await sso.logout()
+      setUser(null)
+      setIsAuthenticated(false)
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <div className="App">
+      <h1>My TimeBack App</h1>
+      
+      {isAuthenticated ? (
+        <div>
+          <h2>Welcome, {user?.name || user?.email}!</h2>
+          <p>User ID: {user?.id}</p>
+          <p>Role: {user?.role}</p>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      ) : (
+        <LoginForm onLogin={handleLogin} />
+      )}
+    </div>
+  )
+}
+
+// Simple login form component
+function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => void }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onLogin(email, password)
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+      </div>
+      <div>
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  )
+}
+
+export default App
+```
+
+## Step 4: Add Basic Styling
+
+Update your `src/App.css`:
+
+```css
+.App {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.75rem 1.5rem;
+  background: #007AFE;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #005BB8;
+}
+```
+
+## Step 5: Configure Vite (Optional)
+
+If you need to customize the Vite config, update `vite.config.ts`:
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000, // Or your preferred port
+    cors: true,
+    open: true
+  }
+})
+```
+
+## Step 6: Run Your Application
+
+```bash
+bun run dev
+```
+
+Your app should now be running with TimeBack SSO integration!
+
+## Testing SSO
+
+To test the SSO functionality:
+
+1. Login in your application
+2. Open the demo app at `http://localhost:8082` (if running)
+3. Or open your app in an incognito window on a different port
+4. The SSO should automatically authenticate you
+
+## Advanced Features
+
+### Making Authenticated API Calls
+
+```typescript
+// After user is authenticated
+const fetchUserData = async () => {
+  try {
+    const response = await sso.request('/api/user/profile')
+    const data = await response.json()
+    console.log('User profile:', data)
+  } catch (error) {
+    console.error('Failed to fetch user data:', error)
+  }
+}
+```
+
+### Using the React Hook (if available)
+
+If the React hook is working in your environment:
+
+```typescript
+import { useTimeBackSSO } from '@timeback/sso-sdk'
+
+function App() {
+  const { 
+    isAuthenticated, 
+    user, 
+    login, 
+    logout, 
+    checkSession 
+  } = useTimeBackSSO({
+    apiBaseUrl: 'http://localhost:8080'
+  })
+
+  // Use the hook values directly
+  return (
+    <div>
+      {isAuthenticated ? (
+        <div>Welcome {user?.name}!</div>
+      ) : (
+        <button onClick={() => login(email, password)}>
+          Login
+        </button>
+      )}
+    </div>
+  )
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Module not found**: Make sure the SDK is properly installed and built
+2. **CORS errors**: Ensure your API server allows requests from your domain
+3. **SSO not working**: Check that both apps are whitelisted in the backend
+4. **TypeScript errors**: Ensure you have the latest TypeScript definitions
+
+### Development vs Production
+
+For development, use the local file reference method. For production, you'll want to:
+
+1. Publish the SDK to a private npm registry, or
+2. Include it as a git submodule, or  
+3. Bundle it directly into your application
+
+## Next Steps
+
+- Explore the [full demo application](/tb-sso/framework-guides/vite-sso-integration) for more advanced examples
+- Review the [TimeBack SSO overview](/tb-sso/sso-overview) for deeper understanding
+- Check the [TimeBack API documentation](/api-reference/introduction) for available endpoints

@@ -1,0 +1,125 @@
+---
+title: "List Students"
+description: "Returns a paginated list of students that the user has access to"
+openapi: "GET /students"
+---
+
+## Overview
+
+This endpoint allows you to retrieve a list of students with optional filtering by organization and grade level. Results are paginated for optimal performance.
+
+## Query Parameters
+
+- **organizationId** (optional): Filter by organization ID
+- **gradeLevel** (optional): Filter by grade level  
+- **page** (optional): Page number for pagination (default: 1)
+- **pageSize** (optional): Number of results per page (default: 50, max: 100)
+
+## Usage Examples
+
+### Basic Request
+Retrieve all students you have access to:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Filtered by Organization
+Get students from a specific school:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students?organizationId=school-123" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### Filtered by Grade Level with Pagination
+Get 6th grade students with pagination:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students?gradeLevel=6&page=1&pageSize=25" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "students": [
+      {
+        "id": "student-123",
+        "email": "john.doe@school.edu",
+        "name": "John Doe",
+        "gradeLevel": "6",
+        "organizationIds": ["school-123"],
+        "isActive": true,
+        "createdAt": "2024-01-15T10:30:00Z",
+        "updatedAt": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "pageSize": 25,
+      "total": 150,
+      "totalPages": 6
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+### Multiple Filters
+Combine organization and grade level filters:
+
+```bash
+curl -X GET "https://core.timebackapi.com/students?organizationId=school-123&gradeLevel=6" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## Student Fields
+
+### Core Fields
+- **id**: Unique student identifier
+- **email**: Student's email address for communication
+- **name**: Full name of the student
+- **gradeLevel**: Current grade level (string format for flexibility)
+- **organizationIds**: Array of organization IDs the student belongs to
+- **isActive**: Whether the student account is currently active
+- **createdAt**: Timestamp when the student record was created
+- **updatedAt**: Timestamp when the student record was last modified
+
+### Optional Extended Fields
+Additional fields may be included based on organization settings:
+- **studentNumber**: School-assigned student identifier
+- **dateOfBirth**: Student's date of birth (if permitted)
+- **parentEmail**: Parent/guardian contact email
+- **specialNeeds**: Array of special accommodation flags
+- **enrollmentStatus**: Current enrollment status
+
+## Access Control
+
+- Users can only access students within their permitted organizations
+- Teachers can see students in their assigned classes
+- Students cannot access other student records
+- Administrators have broader access based on organizational scope
+- School staff can access students within their school boundary
+
+## Use Cases
+
+- **Class Management**: Populate teacher class rosters and student lists
+- **Student Search**: Find specific students by name, grade, or organization
+- **Enrollment Reports**: Generate enrollment statistics and demographics
+- **Parent Communications**: Build contact lists for parent notifications
+- **Academic Planning**: Organize students for class scheduling and resource allocation
+
+## Rate Limits
+
+This endpoint is subject to the following rate limits:
+- **JWT Authentication**: 1,000 requests per minute
+- **API Key Authentication**: 100 requests per minute (basic tier)

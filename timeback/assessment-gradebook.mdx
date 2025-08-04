@@ -1,0 +1,332 @@
+---
+title: "Assessment & Gradebook System"
+description: "Advanced gradebook capabilities with mastery tracking and XP systems in TimeBack"
+---
+
+## Assessment & Gradebook System
+
+TimeBack's assessment and gradebook system goes beyond traditional grade recording to provide comprehensive learning analytics, mastery tracking, and gamified learning experiences.
+
+## Core Components
+
+### Grade Categories
+Organize assessments into meaningful categories for better analysis:
+
+```typescript
+interface Category {
+  id: string;
+  title: string;
+  status: "active" | "tobedeleted";
+  dateLastModified?: Date;
+}
+```
+
+**Standard Categories:**
+- **Homework**: Daily assignments and practice work
+- **Tests & Quizzes**: Formal assessments
+- **Class Participation**: Engagement and interaction
+- **Projects**: Long-term assignments
+- **Lab Work**: Hands-on learning activities
+
+### Line Items (Assignments)
+Individual assessments with rich metadata:
+
+```typescript
+interface LineItem {
+  id: string;
+  title: string;
+  description?: string;
+  classId: string;
+  categoryId: string;
+  assignDate: Date;
+  dueDate: Date;
+  resultValueMin: string;
+  resultValueMax: string;
+  status: "active" | "tobedeleted";
+}
+```
+
+### Results with TimeBack Extensions
+Student results enhanced with learning analytics:
+
+```typescript
+interface Result {
+  id: string;
+  lineItemId: string;
+  studentId: string;
+  scoreStatus: "exempt" | "tobeGraded" | "partiallyGraded" | "fullyGraded";
+  score?: string;
+  scoreDate?: Date;
+  comment?: string;
+  status: "active" | "tobedeleted";
+  metadata?: {
+    'timeback.xp': number;
+    'timeback.masteryLevel': MasteryLevel;
+    'timeback.attemptCount': number;
+    'timeback.timeSpent': number; // seconds
+    'timeback.learningVelocity'?: number;
+  };
+}
+```
+
+## Mastery Level System
+
+TimeBack tracks student mastery beyond simple grades:
+
+### Mastery Levels
+- **not-started**: Assignment not yet attempted
+- **in-progress**: Currently working on the material
+- **developing**: Basic understanding demonstrated
+- **proficient**: Solid grasp of concepts
+- **advanced**: Exceeds expectations
+- **mastery**: Complete understanding achieved
+
+### Mastery Progression
+```typescript
+interface MasteryProgression {
+  conceptId: string;
+  currentLevel: MasteryLevel;
+  progression: {
+    level: MasteryLevel;
+    achievedDate: Date;
+    evidence: string[]; // Assignment IDs
+  }[];
+  timeToMastery: number; // seconds
+}
+```
+
+## Experience Points (XP) System
+
+### XP Calculation
+XP is awarded based on multiple factors:
+
+```typescript
+function calculateXP(result: Result, context: AssignmentContext): number {
+  const baseXP = Math.floor((result.score / result.maxScore) * 100);
+  
+  // Mastery bonus
+  const masteryMultiplier = {
+    'developing': 1.0,
+    'proficient': 1.2,
+    'advanced': 1.5,
+    'mastery': 2.0
+  };
+  
+  // Time efficiency bonus
+  const timeBonus = context.expectedTime > result.timeSpent ? 1.1 : 1.0;
+  
+  // Attempt penalty (first attempt = no penalty)
+  const attemptPenalty = Math.max(0.5, 1.0 - (result.attemptCount - 1) * 0.1);
+  
+  return Math.round(baseXP * masteryMultiplier[result.masteryLevel] * timeBonus * attemptPenalty);
+}
+```
+
+### XP Categories
+- **Assignment XP**: Individual assignment completion
+- **Mastery XP**: Achieving mastery levels
+- **Streak XP**: Consecutive successful completions
+- **Efficiency XP**: Completing work in optimal time
+- **Help XP**: Assisting other students
+
+## Advanced Analytics
+
+### Learning Velocity Tracking
+Monitor how quickly students progress through material:
+
+```typescript
+interface LearningVelocity {
+  studentId: string;
+  subjectId: string;
+  conceptsPerHour: number;
+  masteryRate: number; // percentage reaching proficiency
+  averageAttempts: number;
+  trendDirection: "improving" | "stable" | "declining";
+}
+```
+
+### Time-on-Task Analysis
+Detailed tracking of student engagement:
+
+```sql
+-- Example query for time analysis
+SELECT 
+  student_id,
+  line_item_id,
+  AVG((metadata->>'timeback.timeSpent')::int) as avg_time_spent,
+  COUNT(*) as attempt_count,
+  MAX(score::int) as best_score
+FROM results 
+WHERE metadata ? 'timeback.timeSpent'
+GROUP BY student_id, line_item_id;
+```
+
+### Mastery Distribution
+Track mastery across classes and concepts:
+
+```typescript
+interface MasteryDistribution {
+  classId: string;
+  conceptId: string;
+  distribution: {
+    [key in MasteryLevel]: number;
+  };
+  averageTimeToMastery: number;
+  strugglingStudents: string[]; // Student IDs below expected progress
+}
+```
+
+## Gradebook Features
+
+### Weighted Grading
+Support for complex grading schemes:
+
+```typescript
+interface GradingScheme {
+  categoryWeights: {
+    [categoryId: string]: number; // percentage weight
+  };
+  dropLowest?: {
+    [categoryId: string]: number; // number to drop
+  };
+  extraCredit: boolean;
+  scalingFactors?: {
+    [categoryId: string]: number;
+  };
+}
+```
+
+### Grade Calculations
+Real-time grade computation with multiple options:
+
+```typescript
+function calculateGrade(
+  results: Result[], 
+  scheme: GradingScheme,
+  options: GradeOptions
+): GradeResult {
+  // Group by category
+  const categoryScores = groupByCategory(results);
+  
+  // Apply category weights
+  let weightedTotal = 0;
+  let totalWeight = 0;
+  
+  for (const [categoryId, scores] of categoryScores) {
+    const weight = scheme.categoryWeights[categoryId] || 0;
+    const categoryAverage = calculateCategoryAverage(scores, scheme);
+    
+    weightedTotal += categoryAverage * weight;
+    totalWeight += weight;
+  }
+  
+  return {
+    numericGrade: weightedTotal / totalWeight,
+    letterGrade: convertToLetterGrade(weightedTotal / totalWeight),
+    masteryLevel: calculateOverallMastery(results),
+    totalXP: results.reduce((sum, r) => sum + (r.metadata?.['timeback.xp'] || 0), 0)
+  };
+}
+```
+
+## Real-Time Feedback
+
+### Instant Score Processing
+Results are processed immediately upon submission:
+
+1. **Score Validation**: Ensure scores are within valid ranges
+2. **XP Calculation**: Award experience points based on performance
+3. **Mastery Assessment**: Update mastery level progression
+4. **Analytics Update**: Refresh learning velocity and time metrics
+5. **Notification Dispatch**: Alert students, teachers, and parents
+
+### Progress Visualization
+Students can track their progress in real-time:
+
+```typescript
+interface ProgressDashboard {
+  overallGrade: number;
+  masteryDistribution: MasteryLevel[];
+  xpEarned: number;
+  xpToNextLevel: number;
+  conceptsMastered: number;
+  timeSpentLearning: number;
+  streakCount: number;
+}
+```
+
+## Gamification Elements
+
+### Achievement Badges
+Unlock badges for various accomplishments:
+
+- **First Attempt Master**: Achieve mastery on first attempt
+- **Speed Demon**: Complete assignments in record time
+- **Consistent Learner**: Maintain learning streaks
+- **Helper**: Assist struggling classmates
+- **Perfectionist**: Achieve 100% scores consistently
+
+### Leaderboards
+Motivate students with friendly competition:
+
+```typescript
+interface Leaderboard {
+  type: "xp" | "mastery" | "efficiency" | "helpfulness";
+  scope: "class" | "grade" | "school";
+  timeframe: "week" | "month" | "semester";
+  rankings: {
+    studentId: string;
+    displayName: string;
+    score: number;
+    trend: "up" | "down" | "stable";
+  }[];
+}
+```
+
+## Parent and Teacher Insights
+
+### Teacher Dashboard
+Comprehensive class analytics:
+
+- **Mastery Heat Maps**: Visual representation of student understanding
+- **Time Efficiency Reports**: Identify students needing support
+- **Concept Difficulty Analysis**: Spot challenging topics
+- **Engagement Metrics**: Track participation and completion rates
+
+### Parent Portal
+Keep families informed with:
+
+- **Progress Reports**: Regular updates on mastery and grades
+- **Time Management**: Insights into study habits
+- **Strength Areas**: Highlight student successes
+- **Support Recommendations**: Suggestions for additional help
+
+## API Integration
+
+### Gradebook APIs
+```typescript
+// Create assignment
+POST /api/gradebook/line-items
+{
+  "title": "Chapter 5 Quiz",
+  "classId": "class-math-6-01",
+  "categoryId": "category-quizzes",
+  "maxPoints": 100,
+  "dueDate": "2024-02-15T23:59:59Z"
+}
+
+// Submit result
+POST /api/gradebook/results
+{
+  "lineItemId": "item-123",
+  "studentId": "student-456",
+  "score": 85,
+  "timeSpent": 1800,
+  "attemptNumber": 1
+}
+
+// Get student progress
+GET /api/gradebook/students/{id}/progress
+```
+
+TimeBack's assessment and gradebook system transforms traditional grading into a comprehensive learning analytics platform that motivates students, informs instruction, and optimizes educational outcomes.

@@ -1,0 +1,514 @@
+---
+title: "TimeBack API Overview"
+description: "RESTful API platform with comprehensive developer tools and integration capabilities"
+---
+
+## API Infrastructure
+
+TimeBack provides a comprehensive REST API platform built with modern standards, offering developers robust tools for integration, comprehensive documentation, and enterprise-grade reliability.
+
+## Architecture Overview
+
+### Technology Stack
+TimeBack's API is built on a modern, scalable foundation:
+
+- **Runtime**: Bun - High-performance JavaScript runtime
+- **Framework**: Hono - Lightweight, standards-compliant web framework
+- **Database**: PostgreSQL with Drizzle ORM for type-safe queries
+- **Authentication**: AWS Cognito with JWT tokens
+- **Documentation**: OpenAPI 3.0 with Swagger UI
+- **Deployment**: AWS Fargate (containerized, no cold starts)
+- **Monitoring**: CloudWatch with custom metrics
+
+### Microservices Design
+```typescript
+interface ServiceArchitecture {
+  core: {
+    authentication: "AWS Cognito + Custom JWT";
+    database: "PostgreSQL + Drizzle ORM";
+    api: "Hono REST API";
+    documentation: "OpenAPI 3.0";
+  };
+  supporting: {
+    storage: "AWS S3 for QTI content";
+    monitoring: "CloudWatch + Custom metrics";
+    logging: "Structured JSON logging";
+    caching: "Redis for session management";
+  };
+}
+```
+
+## RESTful API Design
+
+### HTTP Standards Compliance
+TimeBack's API follows REST principles and HTTP standards:
+
+- **Resource-Based URLs**: Clear, hierarchical resource naming
+- **HTTP Methods**: Proper use of GET, POST, PUT, DELETE, PATCH
+- **Status Codes**: Meaningful HTTP status codes for all responses
+- **Content Types**: Support for JSON, XML, and multipart data
+- **Headers**: Standard and custom headers for metadata
+
+### URL Structure
+```
+https://core.timebackapi.com/{resource}[/{id}][/{sub-resource}]
+
+Examples:
+GET    /v1/students                     # List students
+GET    /v1/students/123                 # Get specific student
+POST   /v1/students                     # Create new student
+PUT    /v1/students/123                 # Update student
+DELETE /v1/students/123                 # Delete student
+GET    /v1/students/123/enrollments     # Get student's enrollments
+```
+
+### Response Format
+Consistent response structure across all endpoints:
+
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    details?: Record<string, any>;
+  };
+  metadata?: {
+    timestamp: string;
+    requestId: string;
+    pagination?: PaginationInfo;
+    version: string;
+  };
+}
+```
+
+## API Endpoints by Category
+
+### Authentication & Authorization
+```typescript
+// Get auth configuration
+GET /v1/auth/info
+
+// Get current user profile
+GET /v1/auth/me
+
+// SSO session management
+POST /v1/auth/sessions/check
+POST /v1/auth/sessions/register
+GET  /v1/auth/sessions
+DELETE /v1/auth/sessions/revoke
+```
+
+### User Management
+```typescript
+// User CRUD operations
+GET    /v1/users                 # List users (paginated)
+GET    /v1/users/{id}            # Get user details
+POST   /v1/users                 # Create new user
+PUT    /v1/users/{id}            # Update user
+DELETE /v1/users/{id}            # Delete user
+
+// User relationships
+GET    /v1/users/{id}/enrollments    # User's class enrollments
+GET    /v1/users/{id}/organizations  # User's organizations
+```
+
+### Educational Data (OneRoster v1.2)
+```typescript
+// Organizations
+GET /v1/orgs                     # List organizations
+GET /v1/orgs/{id}                # Get organization details
+GET /v1/schools                  # List schools
+GET /v1/schools/{id}             # Get school details
+
+// Academic structure
+GET /v1/courses                  # List courses
+GET /v1/courses/{id}             # Get course details
+GET /v1/classes                  # List classes
+GET /v1/classes/{id}             # Get class details
+GET /v1/classes/{id}/enrollments # Class enrollments
+
+// Academic sessions
+GET /v1/academicSessions         # List academic sessions
+GET /v1/academicSessions/{id}    # Get session details
+```
+
+### Gradebook & Assessment
+```typescript
+// Grade categories
+GET    /v1/categories            # List grade categories
+POST   /v1/categories            # Create category
+PUT    /v1/categories/{id}       # Update category
+DELETE /v1/categories/{id}       # Delete category
+
+// Line items (assignments)
+GET    /v1/lineItems             # List assignments
+GET    /v1/lineItems/{id}        # Get assignment details
+POST   /v1/lineItems             # Create assignment
+PUT    /v1/lineItems/{id}        # Update assignment
+DELETE /v1/lineItems/{id}        # Delete assignment
+
+// Results (grades)
+GET    /v1/results               # List results
+GET    /v1/results/{id}          # Get result details
+POST   /v1/results               # Submit result
+PUT    /v1/results/{id}          # Update result
+DELETE /v1/results/{id}          # Delete result
+```
+
+### Resources & Content
+```typescript
+// Educational resources
+GET    /v1/resources             # List resources
+GET    /v1/resources/{id}        # Get resource details
+POST   /v1/resources             # Create resource
+PUT    /v1/resources/{id}        # Update resource
+DELETE /v1/resources/{id}        # Delete resource
+
+// Resource associations
+GET    /v1/courseResources       # Course-resource links
+GET    /v1/classResources        # Class-resource links
+POST   /v1/courseResources       # Link resource to course
+POST   /v1/classResources        # Link resource to class
+```
+
+### QTI Assessment Content
+```typescript
+// QTI items and tests
+GET    /v1/qti/items             # List QTI items
+GET    /v1/qti/items/{id}        # Get QTI item
+POST   /v1/qti/items             # Upload QTI item
+PUT    /v1/qti/items/{id}        # Update QTI item
+DELETE /v1/qti/items/{id}        # Delete QTI item
+
+// QTI content storage
+GET    /v1/qti/content/{id}      # Get QTI content file
+POST   /v1/qti/upload            # Upload QTI package
+GET    /v1/qti/presigned-url     # Get upload URL
+```
+
+## Authentication & Security
+
+### JWT Token Authentication
+```typescript
+interface JWTPayload {
+  sub: string;           // User ID
+  email: string;         // User email
+  name: string;          // User name
+  role: string;          // User role
+  org_ids: string[];     // Accessible organization IDs
+  exp: number;           // Expiration time
+  iat: number;           // Issued at
+  iss: string;           // Issuer
+}
+
+// Usage in requests
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### API Key Authentication
+```typescript
+// API key in header
+X-API-Key: tbk_live_1234567890abcdef
+
+// API key in query parameter (not recommended for production)
+GET /v1/students?api_key=tbk_live_1234567890abcdef
+```
+
+### Permission System
+```typescript
+interface ApiPermission {
+  resource: string;      // "students", "grades", etc.
+  action: string;        // "read", "write", "delete"
+  scope: string;         // "own", "organization", "all"
+  conditions?: {
+    time_range?: string;
+    filters?: Record<string, any>;
+  };
+}
+```
+
+## Rate Limiting & Quotas
+
+### Rate Limits by Authentication Type
+```typescript
+interface RateLimits {
+  jwt: {
+    requestsPerMinute: 1000;
+    requestsPerHour: 10000;
+    requestsPerDay: 100000;
+  };
+  apiKey: {
+    basic: {
+      requestsPerMinute: 100;
+      requestsPerHour: 1000;
+      requestsPerDay: 10000;
+    };
+    premium: {
+      requestsPerMinute: 1000;
+      requestsPerHour: 10000;
+      requestsPerDay: 100000;
+    };
+    enterprise: {
+      requestsPerMinute: 5000;
+      requestsPerHour: 50000;
+      requestsPerDay: 500000;
+    };
+  };
+}
+```
+
+### Rate Limit Headers
+```http
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1640995200
+X-RateLimit-Type: sliding-window
+```
+
+## Error Handling
+
+### Standard Error Codes
+```typescript
+interface ApiError {
+  code: string;
+  message: string;
+  details?: Record<string, any>;
+}
+
+// Common error codes
+const ErrorCodes = {
+  // Authentication errors
+  INVALID_TOKEN: "AUTH001",
+  EXPIRED_TOKEN: "AUTH002",
+  INSUFFICIENT_PERMISSIONS: "AUTH003",
+  
+  // Validation errors
+  INVALID_INPUT: "VAL001",
+  MISSING_REQUIRED_FIELD: "VAL002",
+  INVALID_FORMAT: "VAL003",
+  
+  // Resource errors
+  RESOURCE_NOT_FOUND: "RES001",
+  RESOURCE_CONFLICT: "RES002",
+  RESOURCE_LOCKED: "RES003",
+  
+  // System errors
+  INTERNAL_ERROR: "SYS001",
+  SERVICE_UNAVAILABLE: "SYS002",
+  RATE_LIMIT_EXCEEDED: "SYS003"
+};
+```
+
+### Error Response Examples
+```json
+// 400 Bad Request
+{
+  "success": false,
+  "error": {
+    "code": "VAL001",
+    "message": "Invalid input provided",
+    "details": {
+      "field": "email",
+      "reason": "Invalid email format",
+      "provided": "invalid-email"
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req_1234567890"
+  }
+}
+
+// 429 Too Many Requests
+{
+  "success": false,
+  "error": {
+    "code": "SYS003",
+    "message": "Rate limit exceeded",
+    "details": {
+      "limit": 1000,
+      "period": "hour",
+      "retryAfter": 3600
+    }
+  }
+}
+```
+
+## OpenAPI Documentation
+
+### Interactive API Explorer
+TimeBack provides comprehensive API documentation through Swagger UI:
+
+- **Live Documentation**: Interactive API explorer at `/docs`
+- **Code Examples**: Auto-generated code samples in multiple languages
+- **Schema Validation**: Real-time request/response validation
+- **Authentication Testing**: Built-in auth token management
+
+### OpenAPI Specification Features
+```yaml
+openapi: 3.0.0
+info:
+  title: TimeBack API
+  version: 1.0.0
+  description: Comprehensive educational technology API
+  contact:
+    name: TimeBack Support
+    url: https://support.timeback.com
+    email: support@timeback.com
+  license:
+    name: Proprietary
+    url: https://timeback.com/license
+
+servers:
+  - url: https://core.timebackapi.com
+    description: Production server
+  - url: https://staging-api.timeback.com/v1
+    description: Staging server
+
+components:
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+```
+
+## SDK and Client Libraries
+
+### Official SDKs
+TimeBack provides official SDKs for popular languages:
+
+#### TypeScript/JavaScript SDK
+```typescript
+import { TimeBackClient } from '@timeback/sdk';
+
+const client = new TimeBackClient({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://core.timebackapi.com'
+});
+
+// Get student data
+const students = await client.students.list({
+  organizationId: 'school-123',
+  gradeLevel: '6'
+});
+
+// Create assignment
+const assignment = await client.lineItems.create({
+  title: 'Math Quiz Chapter 5',
+  classId: 'class-456',
+  categoryId: 'category-quizzes',
+  maxPoints: 100,
+  dueDate: '2024-02-15T23:59:59Z'
+});
+```
+
+#### Python SDK
+```python
+from timeback import TimeBackClient
+
+client = TimeBackClient(
+    api_key='your-api-key',
+    base_url='https://core.timebackapi.com'
+)
+
+# Get class enrollments
+enrollments = client.enrollments.list(
+    class_id='class-456',
+    role='student'
+)
+
+# Submit grade
+result = client.results.create(
+    line_item_id='item-789',
+    student_id='student-123',
+    score=95,
+    metadata={
+        'timeback.xp': 150,
+        'timeback.mastery_level': 'proficient'
+    }
+)
+```
+
+### Webhook Support
+Real-time notifications for data changes:
+
+```typescript
+interface WebhookEvent {
+  id: string;
+  type: string;
+  timestamp: string;
+  data: Record<string, any>;
+  organization_id?: string;
+}
+
+// Webhook endpoint configuration
+POST /v1/webhooks
+{
+  "url": "https://your-app.com/webhooks/timeback",
+  "events": ["student.created", "grade.submitted", "class.updated"],
+  "secret": "webhook-secret-key",
+  "active": true
+}
+```
+
+## Performance & Monitoring
+
+### API Metrics
+Comprehensive monitoring and analytics:
+
+```typescript
+interface ApiMetrics {
+  endpoint: string;
+  method: string;
+  responseTime: {
+    p50: number;
+    p95: number;
+    p99: number;
+    average: number;
+  };
+  throughput: {
+    requestsPerSecond: number;
+    requestsPerMinute: number;
+    requestsPerHour: number;
+  };
+  errors: {
+    rate: number;
+    codes: Record<string, number>;
+  };
+  usage: {
+    uniqueClients: number;
+    topEndpoints: EndpointUsage[];
+    geographicDistribution: Record<string, number>;
+  };
+}
+```
+
+### Health Monitoring
+```typescript
+// Health check endpoint
+GET /v1/health
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "version": "1.2.3",
+  "services": {
+    "database": "healthy",
+    "authentication": "healthy",
+    "storage": "healthy"
+  },
+  "metrics": {
+    "uptime": 99.99,
+    "responseTime": 45,
+    "throughput": 1250
+  }
+}
+```
+
+TimeBack's API infrastructure provides the robust foundation needed for complex educational technology integrations while maintaining performance, security, and developer experience at enterprise scale.

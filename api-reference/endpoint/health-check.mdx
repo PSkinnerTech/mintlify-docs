@@ -1,0 +1,194 @@
+---
+title: "Health Check"
+description: "Returns API health status and system information"
+openapi: "GET /health"
+---
+
+## Overview
+
+Returns the current health status of the TimeBack API and its dependent services. This endpoint is used for monitoring, load balancer health checks, and system diagnostics. No authentication is required.
+
+## Usage Examples
+
+### Basic Health Check
+Check if the API is responding:
+
+```bash
+curl -X GET "https://core.timebackapi.com/health"
+```
+
+### Monitor Script Example
+Simple monitoring script:
+
+```bash
+#!/bin/bash
+response=$(curl -s -o /dev/null -w "%{http_code}" https://core.timebackapi.com/health)
+if [ $response = "200" ]; then
+  echo "API is healthy"
+else
+  echo "API health check failed with status: $response"
+fi
+```
+
+### JavaScript Monitoring
+Use in web applications for status monitoring:
+
+```javascript
+async function checkApiHealth() {
+  try {
+    const response = await fetch('https://core.timebackapi.com/health');
+    const health = await response.json();
+    
+    console.log('API Status:', health.status);
+    console.log('Services:', health.services);
+    
+    return health.status === 'healthy';
+  } catch (error) {
+    console.error('Health check failed:', error);
+    return false;
+  }
+}
+```
+
+## Response Format
+
+### Healthy System
+```json
+{
+  "status": "healthy",
+  "timestamp": "2024-01-25T10:30:00Z",
+  "version": "1.2.3",
+  "services": {
+    "database": "healthy",
+    "authentication": "healthy", 
+    "storage": "healthy"
+  }
+}
+```
+
+### Degraded System
+```json
+{
+  "status": "degraded",
+  "timestamp": "2024-01-25T10:30:00Z",
+  "version": "1.2.3",
+  "services": {
+    "database": "healthy",
+    "authentication": "degraded",
+    "storage": "healthy"
+  }
+}
+```
+
+### System Down
+```json
+{
+  "status": "down",
+  "timestamp": "2024-01-25T10:30:00Z",
+  "version": "1.2.3",
+  "services": {
+    "database": "down",
+    "authentication": "healthy",
+    "storage": "healthy"
+  }
+}
+```
+
+## Response Fields
+
+### Core Status
+- **status**: Overall system health (`healthy`, `degraded`, `down`)
+- **timestamp**: Current server timestamp in ISO 8601 format
+- **version**: Current API version
+
+### Service Status
+The `services` object contains the health status of critical system components:
+
+- **database**: PostgreSQL database connectivity and performance
+- **authentication**: AWS Cognito and JWT token services
+- **storage**: AWS S3 and file storage services
+
+Each service can report:
+- **healthy**: Service is operating normally
+- **degraded**: Service is operational but experiencing issues
+- **down**: Service is unavailable
+
+## HTTP Status Codes
+
+- **200 OK**: System is healthy or degraded but responsive
+- **503 Service Unavailable**: Critical systems are down
+- **500 Internal Server Error**: Health check itself failed
+
+## Status Determination Logic
+
+### **healthy**
+- All critical services are operational
+- Response times are within acceptable limits
+- No recent error spikes detected
+
+### **degraded** 
+- Some non-critical services have issues
+- Higher than normal response times
+- Elevated error rates but still functional
+
+### **down**
+- Critical services are unavailable
+- Database connectivity lost
+- Authentication services failing
+
+## Monitoring Integration
+
+### Load Balancer Configuration
+Configure your load balancer to use this endpoint:
+
+```yaml
+# AWS Application Load Balancer
+health_check:
+  path: /v1/health
+  interval: 30
+  timeout: 5
+  healthy_threshold: 2
+  unhealthy_threshold: 3
+```
+
+### Uptime Monitoring
+Set up external monitoring services:
+
+```yaml
+# Pingdom/Datadog configuration
+endpoint: https://core.timebackapi.com/health
+frequency: 60 # seconds
+timeout: 10
+expected_status: 200
+expected_text: "healthy"
+```
+
+### Alerting Rules
+Create alerts based on health status:
+
+```yaml
+# Example alert configuration
+alert_rules:
+  - name: "API Down"
+    condition: 'status == "down"'
+    severity: critical
+    
+  - name: "API Degraded"
+    condition: 'status == "degraded"'
+    severity: warning
+```
+
+## Best Practices
+
+1. **Regular Monitoring**: Check health status every 30-60 seconds
+2. **Cascading Checks**: Monitor both this endpoint and individual service health
+3. **Response Time Tracking**: Monitor not just status but response time trends
+4. **Alert Thresholds**: Set appropriate thresholds to avoid alert fatigue
+5. **Dependency Mapping**: Understand how service failures affect overall functionality
+
+## Security Notes
+
+- No authentication required for this endpoint
+- Does not expose sensitive system information
+- Safe to call from public monitoring services
+- Rate limiting may apply to prevent abuse

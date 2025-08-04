@@ -1,0 +1,1781 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "TimeBack API",
+    "version": "1.0.0",
+    "description": "Comprehensive educational technology API for TimeBack platform",
+    "contact": {
+      "name": "TimeBack Support",
+      "url": "https://support.timeback.com",
+      "email": "support@timeback.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://timeback.com/license"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://core.timebackapi.com",
+      "description": "Production server"
+    },
+    {
+      "url": "https://staging-api.timeback.com/v1",
+      "description": "Staging server"
+    }
+  ],
+  "security": [
+    {
+      "JWTAuth": []
+    },
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/results": {
+      "get": {
+        "summary": "List results",
+        "description": "Returns assessment results and grades",
+        "tags": ["Gradebook"],
+        "parameters": [
+          {
+            "name": "studentId",
+            "in": "query",
+            "description": "Filter by student ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lineItemId",
+            "in": "query",
+            "description": "Filter by assignment/line item ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "classId",
+            "in": "query",
+            "description": "Filter by class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit result",
+        "description": "Creates a new assessment result or grade",
+        "tags": ["Gradebook"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateResultRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Result created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/students": {
+      "get": {
+        "summary": "List students",
+        "description": "Returns a paginated list of students that the user has access to",
+        "tags": ["Student Management"],
+        "parameters": [
+          {
+            "name": "organizationId",
+            "in": "query",
+            "description": "Filter by organization ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gradeLevel",
+            "in": "query",
+            "description": "Filter by grade level",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number for pagination (default: 1)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page (default: 50, max: 100)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of students",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create student",
+        "description": "Creates a new student in the system",
+        "tags": ["Student Management"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStudentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Student created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          }
+        }
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "summary": "Get student",
+        "description": "Returns details for a specific student",
+        "tags": ["Student Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Unique student identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update student",
+        "description": "Updates an existing student's information",
+        "tags": ["Student Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Unique student identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Student updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete student",
+        "description": "Removes a student from the system",
+        "tags": ["Student Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Unique student identifier",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Student deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get current user",
+        "description": "Returns information about the currently authenticated user",
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "Current user information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/info": {
+      "get": {
+        "summary": "Get authentication info",
+        "description": "Get information about authentication configuration and instructions",
+        "tags": ["Authentication"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Authentication information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthInfoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Login with email and password", 
+        "description": "Authenticate with AWS Cognito using email and password",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Logout and clear authentication",
+        "description": "Clear authentication cookies and optionally revoke all SSO sessions",
+        "tags": ["Authentication"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/sessions": {
+      "get": {
+        "summary": "List active SSO sessions",
+        "description": "Get all active SSO sessions for the current user",
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "Active sessions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/sessions/register": {
+      "post": {
+        "summary": "Register SSO session",
+        "description": "Register a new SSO session after successful login",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionRegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Session registered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRegisterResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/sessions/check": {
+      "post": {
+        "summary": "Check SSO session",
+        "description": "Check if a valid SSO session exists for the device fingerprint",
+        "tags": ["Authentication"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionCheckRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Valid session found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionCheckResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/auth/sessions/revoke": {
+      "delete": {
+        "summary": "Revoke all SSO sessions",
+        "description": "Revoke all SSO sessions for the current user (logout everywhere)",
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "Sessions revoked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionRevokeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/users": {
+      "get": {
+        "summary": "List users",
+        "description": "Get a list of users. Regular users only see themselves, admins see all users.",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": true,
+            "description": "Page number for pagination",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize", 
+            "in": "query",
+            "required": true,
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a user",
+        "description": "Create a new user",
+        "tags": ["User Management"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "Get a user",
+        "description": "Get a user by ID. Users can only access their own data unless they are admin/superadmin.",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a user",
+        "description": "Update a user by ID",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "description": "Delete a user by ID",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted successfully"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/associate-oneroster": {
+      "post": {
+        "summary": "Associate user with OneRoster",
+        "description": "Associate a system user with a OneRoster user by updating the onerosterId field",
+        "tags": ["User Management"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssociateOneRosterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User associated with OneRoster successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Returns API health status",
+        "tags": ["System"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "JWTAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "Result": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique result identifier"
+          },
+          "lineItemId": {
+            "type": "string",
+            "description": "Assignment/assessment identifier"
+          },
+          "studentId": {
+            "type": "string",
+            "description": "Student identifier"
+          },
+          "score": {
+            "type": "string",
+            "description": "Student score/grade"
+          },
+          "scoreStatus": {
+            "type": "string",
+            "enum": ["exempt", "tobeGraded", "partiallyGraded", "fullyGraded"],
+            "description": "Grading status"
+          },
+          "comment": {
+            "type": "string",
+            "description": "Teacher comment on the result"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "TimeBack-specific metadata including XP, mastery level, etc.",
+            "properties": {
+              "timeback.xp": {
+                "type": "integer",
+                "description": "Experience points earned"
+              },
+              "timeback.masteryLevel": {
+                "type": "string",
+                "enum": ["not-started", "in-progress", "developing", "proficient", "advanced", "mastery"],
+                "description": "Student mastery level"
+              },
+              "timeback.attemptCount": {
+                "type": "integer",
+                "description": "Number of attempts made"
+              },
+              "timeback.timeSpent": {
+                "type": "integer",
+                "description": "Time spent in seconds"
+              }
+            }
+          }
+        },
+        "required": ["id", "lineItemId", "studentId", "scoreStatus"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique user identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "name": {
+            "type": "string",
+            "description": "User's full name"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin", "superadmin"],
+            "description": "User's role in the system"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of organization IDs the user belongs to"
+          },
+          "cognitoId": {
+            "type": "string",
+            "description": "AWS Cognito identifier"
+          },
+          "onerosterId": {
+            "type": "string",
+            "description": "OneRoster identifier (if associated)"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the user account is active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "User creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": ["id", "email", "name", "role", "organizationIds", "isActive", "createdAt", "updatedAt"]
+      },
+      "CreateUserRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "User's full name"
+          },
+          "cognitoId": {
+            "type": "string",
+            "description": "AWS Cognito identifier"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin", "superadmin"],
+            "description": "User's role in the system",
+            "default": "user"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of organization IDs the user belongs to"
+          }
+        },
+        "required": ["email", "name", "cognitoId"]
+      },
+      "UpdateUserRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email address"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "User's full name"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["user", "admin", "superadmin"],
+            "description": "User's role in the system"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the user account is active"
+          }
+        }
+      },
+      "AssociateOneRosterRequest": {
+        "type": "object",
+        "properties": {
+          "onerosterId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "OneRoster identifier to associate with the user"
+          }
+        },
+        "required": ["onerosterId"]
+      },
+      "UserListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "users": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  },
+                  "pagination": {
+                    "$ref": "#/components/schemas/PaginationInfo"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AuthInfoResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "instructions": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "cognito": {
+                    "type": "object",
+                    "properties": {
+                      "userPoolId": {
+                        "type": "string"
+                      },
+                      "clientId": {
+                        "type": "string"
+                      },
+                      "region": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["region"]
+                  }
+                },
+                "required": ["message", "instructions", "cognito"]
+              }
+            }
+          }
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "description": "User password"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "LoginResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "idToken": {
+                    "type": "string"
+                  },
+                  "refreshToken": {
+                    "type": "string"
+                  },
+                  "expiresIn": {
+                    "type": "number"
+                  },
+                  "tokenType": {
+                    "type": "string"
+                  }
+                },
+                "required": ["accessToken", "idToken", "refreshToken", "expiresIn", "tokenType"]
+              }
+            }
+          }
+        ]
+      },
+      "LogoutResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": ["message"]
+              }
+            }
+          }
+        ]
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastActiveAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["id", "domains", "createdAt", "lastActiveAt", "expiresAt"]
+      },
+      "SessionRegisterRequest": {
+        "type": "object",
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Device fingerprint"
+          },
+          "domain": {
+            "type": "string",
+            "format": "uri",
+            "description": "Domain requesting the session"
+          }
+        },
+        "required": ["fingerprint", "domain"]
+      },
+      "SessionRegisterResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "session": {
+                    "$ref": "#/components/schemas/Session"
+                  }
+                },
+                "required": ["session"]
+              }
+            }
+          }
+        ]
+      },
+      "SessionCheckRequest": {
+        "type": "object",
+        "properties": {
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Device fingerprint"
+          },
+          "domain": {
+            "type": "string",
+            "format": "uri",
+            "description": "Domain requesting the check"
+          }
+        },
+        "required": ["fingerprint", "domain"]
+      },
+      "SessionCheckResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "authenticated": {
+                    "type": "boolean"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "user": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "session": {
+                    "$ref": "#/components/schemas/Session"
+                  }
+                },
+                "required": ["authenticated", "token", "user", "session"]
+              }
+            }
+          }
+        ]
+      },
+      "SessionListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "sessions": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Session"
+                    }
+                  }
+                },
+                "required": ["sessions"]
+              }
+            }
+          }
+        ]
+      },
+      "SessionRevokeResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": ["message"]
+              }
+            }
+          }
+        ]
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique student identifier"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Student's email address"
+          },
+          "name": {
+            "type": "string",
+            "description": "Full name of the student"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "Current grade level"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of organization IDs the student belongs to"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the student account is currently active"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the student record was created"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the student record was last modified"
+          },
+          "studentNumber": {
+            "type": "string",
+            "description": "School-assigned student identifier"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "description": "Student's date of birth (if permitted)"
+          },
+          "parentEmail": {
+            "type": "string",
+            "format": "email",
+            "description": "Parent/guardian contact email"
+          },
+          "specialNeeds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Array of special accommodation flags"
+          },
+          "enrollmentStatus": {
+            "type": "string",
+            "enum": ["enrolled", "transferred", "graduated", "withdrawn"],
+            "description": "Current enrollment status"
+          }
+        },
+        "required": ["id", "email", "name", "gradeLevel", "organizationIds", "isActive", "createdAt", "updatedAt"]
+      },
+      "CreateResultRequest": {
+        "type": "object",
+        "properties": {
+          "lineItemId": {
+            "type": "string"
+          },
+          "studentId": {
+            "type": "string"
+          },
+          "score": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": ["lineItemId", "studentId"]
+      },
+      "CreateStudentRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Student email address (must be valid email format)"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Student full name"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "Current grade level"
+          },
+          "organizationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of organization IDs the student belongs to"
+          }
+        },
+        "required": ["email", "name", "gradeLevel"]
+      },
+      "UpdateStudentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Student full name"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "Current grade level"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Whether the student account is active"
+          }
+        }
+      },
+      "ResultListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "results": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Result"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ResultResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "result": {
+                    "$ref": "#/components/schemas/Result"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "UserResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "StudentResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "student": {
+                    "$ref": "#/components/schemas/Student"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "StudentListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "object",
+                "properties": {
+                  "students": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Student"
+                    }
+                  },
+                  "pagination": {
+                    "$ref": "#/components/schemas/PaginationInfo"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "down"]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string"
+          },
+          "services": {
+            "type": "object",
+            "properties": {
+              "database": {
+                "type": "string",
+                "enum": ["healthy", "degraded", "down"]
+              },
+              "authentication": {
+                "type": "string",
+                "enum": ["healthy", "degraded", "down"]
+              },
+              "storage": {
+                "type": "string",
+                "enum": ["healthy", "degraded", "down"]
+              }
+            }
+          }
+        }
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "requestId": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": ["success"]
+      },
+      "PaginationInfo": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [false]
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object"
+              }
+            },
+            "required": ["code", "message"]
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "requestId": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": ["success", "error"]
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Authentication required",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "AUTH001",
+                "message": "Invalid or missing authentication token"
+              }
+            }
+          }
+        }
+      },
+      "ForbiddenError": {
+        "description": "Insufficient permissions",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "AUTH003",
+                "message": "Insufficient permissions for this operation"
+              }
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "RES001",
+                "message": "Resource not found"
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Invalid input data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "VAL001",
+                "message": "Invalid input provided",
+                "details": {
+                  "field": "email",
+                  "reason": "Invalid email format"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConflictError": {
+        "description": "Resource conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "example": {
+              "success": false,
+              "error": {
+                "code": "RES002",
+                "message": "Student with this email already exists"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Gradebook",
+      "description": "Assessment and grading operations"
+    },
+    {
+      "name": "Student Management",
+      "description": "Student enrollment and information management"
+    },
+    {
+      "name": "User Management",
+      "description": "User account and profile management"
+    },
+    {
+      "name": "Authentication",
+      "description": "Authentication and user management"
+    },
+    {
+      "name": "System",
+      "description": "System health and monitoring"
+    }
+  ]
+}

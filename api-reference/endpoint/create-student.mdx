@@ -1,0 +1,117 @@
+---
+title: "Create Student"
+description: "Creates a new student in the system"
+openapi: "POST /students"
+---
+
+## Overview
+
+Creates a new student account in the TimeBack system. This endpoint allows administrators and authorized users to add new students to their organization.
+
+## Request Body
+
+Required fields:
+- **email** (string): Student email address (must be valid email format)
+- **name** (string): Student full name
+- **gradeLevel** (string): Current grade level
+
+Optional fields:
+- **organizationIds** (array): List of organization IDs the student belongs to
+
+## Usage Examples
+
+### Basic Student Creation
+Create a new student with minimal information:
+
+```bash
+curl -X POST "https://core.timebackapi.com/students" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "jane.smith@school.edu",
+    "name": "Jane Smith",
+    "gradeLevel": "7"
+  }'
+```
+
+### Student with Organization Assignment
+Create a student and assign to specific organizations:
+
+```bash
+curl -X POST "https://core.timebackapi.com/students" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@school.edu",
+    "name": "John Doe",
+    "gradeLevel": "6",
+    "organizationIds": ["school-123", "district-456"]
+  }'
+```
+
+## Response Format
+
+```json
+{
+  "success": true,
+  "data": {
+    "student": {
+      "id": "student-789",
+      "email": "jane.smith@school.edu",
+      "name": "Jane Smith",
+      "gradeLevel": "7",
+      "organizationIds": ["school-123"],
+      "isActive": true,
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T10:30:00Z"
+    }
+  },
+  "metadata": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "requestId": "req_1234567890",
+    "version": "1.0.0"
+  }
+}
+```
+
+## Validation Rules
+
+- **Email**: Must be a valid email format and unique within the system
+- **Name**: Required, minimum 2 characters
+- **Grade Level**: Must be a valid grade level string
+- **Organization IDs**: Must reference existing organizations that the user has access to
+
+## Error Responses
+
+### 400 Bad Request - Validation Error
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VAL001",
+    "message": "Invalid input provided",
+    "details": {
+      "field": "email",
+      "reason": "Invalid email format",
+      "provided": "invalid-email"
+    }
+  }
+}
+```
+
+### 409 Conflict - Duplicate Email
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RES002",
+    "message": "Student with this email already exists"
+  }
+}
+```
+
+## Notes
+
+- Created students are automatically marked as active
+- Students will receive account setup instructions via email
+- Organization assignment determines access permissions and class enrollments
